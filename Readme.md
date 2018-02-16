@@ -18,13 +18,15 @@ So this project ties everything together. You can check it out and deploy it wit
 
 It demonstrates:
 
-* Go project layout
 * Web handler
 * Worker function
+* Function-specific env and capabilities
 * Database
 * Periodic tasks
+* Logs
 * Tracing
 * Notifications
+* Go project layout
 * One-command dev environment
 * One-command deployment
 * Deployment parameters
@@ -39,22 +41,25 @@ We don't need a framework or a Platform-as-a-Service or even any 3rd party Softw
 This app uses [Go 1.10 beta](https://beta.golang.org/), [dep](https://github.com/golang/dep), [AWS CLI](https://aws.amazon.com/cli/), [AWS SAM Local](https://docs.aws.amazon.com/lambda/latest/dg/test-sam-local.html) and [Docker for Mac](https://www.docker.com/docker-mac).
 
 ```console
+## install tools
+
 $ brew install aws-cli
 $ brew install go --devel
 $ go get github.com/awslabs/aws-sam-local 
 $ go get -u github.com/golang/dep/cmd/dep
 ```
 
-We may want to double check the installed versions...
-
 <details>
+<summary>We may want to double check the installed versions...</summary>
+&nbsp;
 
 ```console
 ## check versions
+
 $ aws --version
 aws-cli/1.14.40 Python/3.6.4 Darwin/17.4.0 botocore/1.8.44
 
-Studio:gofaas noah$ docker version
+$ docker version
 Client:
  Version:	17.12.0-ce
  API version:	1.35
@@ -81,9 +86,9 @@ sam version snapshot
 ```
 </details>
 
-We may also want to configure the AWS CLI with IAM keys to develop and deploy our application.
-
 <details>
+<summary>We may also want to configure the AWS CLI with IAM keys to develop and deploy our application...</summary>
+&nbsp;
 
 Follow the [Creating an IAM User in Your AWS Account](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html) doc to create a IAM user with programmatic access. Call the user `gofaas-admin` and attach the "Administrator Access" policy for now.
 
@@ -91,16 +96,19 @@ Then configure the CLI. Here we are creating a new profile that we can switch to
 
 ```console
 ## configure the AWS CLI with keys
+
 $ aws configure --profile gofaas
 AWS Access Key ID [None]: AKIA................
 AWS Secret Access Key [None]: PQN4CWZXXbJEgnrom2fP0Z+z................
 Default region name [None]: us-east-1
 Default output format [None]: json
 
-## set this as the profile for this session
+## configure this session to use the profile
+
 $ export AWS_PROFILE=gofaas
 
-## verify profile
+## verify the profile
+
 $ aws iam get-user
 {
     "User": {
@@ -112,7 +120,6 @@ $ aws iam get-user
     }
 }
 ```
-
 </details>
 
 ## Get the app
@@ -121,10 +128,12 @@ We start by getting and testing the `github.com/nzoschke/gofaas`.
 
 ```console
 ## get the project
+
 $ PKG=github.com/nzoschke/gofaas
 $ go get $PKG && cd $GOPATH/src/$PKG
 
 ## verify tests pass
+
 $ make test
 ...
 ok  	github.com/nzoschke/gofaas	0.014s
@@ -136,24 +145,29 @@ This gives us confidence in our environment.
 
 ```console
 ## build and start development server
+
 $ make dev
-cd ./handlers/dashboard && GOOS=linux go build -o handler . && zip handler.zip handler
-aws-sam-local local start-api -n env.json
+cd ./handlers/dashboard && GOOS=linux go build...
 2018/02/16 07:40:32 Fetching lambci/lambda:go1.x image for go1.x runtime...
 Mounting handler (go1.x) at http://127.0.0.1:3000/ [GET]
 ```
 
 ```console
-## GET the app
+## request the app
+
 $ curl http://localhost:3000
 <html><body><h1>GoFAAS Dashboard</h1></body></html>
 ```
 
-We may want to review all the SAM logs to better understand how our function is envoked...
+We may want to review all the SAM logs to better understand how our function is invoked...
 
 <details>
+<summary>Review all SAM logs to better understand function invocation...</summary>
+&nbsp;
 
 ```console
+$ make dev
+
 aws-sam-local local start-api -n env.json
 2018/02/16 08:24:33 Connected to Docker 1.35
 2018/02/16 08:24:33 Fetching lambci/lambda:go1.x image for go1.x runtime...

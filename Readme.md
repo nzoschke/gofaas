@@ -27,6 +27,8 @@ It demonstrates:
 * Notifications
 * One-command dev environment
 * One-command deployment
+* Deployment parameters
+* Custom domain
 
 What's remarkable is how little work is required to get all this. By standing on the shoulders of Go and AWS, all the undifferentiated heavy lifting is done. We just have to add our business logic functions.
 
@@ -43,7 +45,7 @@ $ go get github.com/awslabs/aws-sam-local
 $ go get -u github.com/golang/dep/cmd/dep
 ```
 
-You may want to verify versions match...
+We may want to double check the installed versions...
 
 <details>
 
@@ -79,7 +81,43 @@ sam version snapshot
 ```
 </details>
 
-## Get the project
+We may also want to configure the AWS CLI with IAM keys to develop and deploy our application.
+
+<details>
+
+Follow the [Creating an IAM User in Your AWS Account](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html) doc to create a IAM user with programmatic access. Call the user `gofaas-admin` and attach the "Administrator Access" policy for now.
+
+Then configure the CLI. Here we are creating a new profile that we can switch to with `export AWS_PROFILE=gofaas`. This will help us isolate our experiments from other AWS work.
+
+```console
+## configure the AWS CLI with keys
+$ aws configure --profile gofaas
+AWS Access Key ID [None]: AKIA................
+AWS Secret Access Key [None]: PQN4CWZXXbJEgnrom2fP0Z+z................
+Default region name [None]: us-east-1
+Default output format [None]: json
+
+## set this as the profile for this session
+$ export AWS_PROFILE=gofaas
+
+## verify profile
+$ aws iam get-user
+{
+    "User": {
+        "Path": "/",
+        "UserName": "gofaas-admin",
+        "UserId": "AIDAJA44LJEOECDPZ3S5U",
+        "Arn": "arn:aws:iam::572007530218:user/gofaas-admin",
+        "CreateDate": "2018-02-16T16:17:24Z"
+    }
+}
+```
+
+</details>
+
+## Get the app
+
+We start by getting and testing the `github.com/nzoschke/gofaas`.
 
 ```console
 ## get the project
@@ -90,4 +128,57 @@ $ go get $PKG && cd $GOPATH/src/$PKG
 $ make test
 ...
 ok  	github.com/nzoschke/gofaas	0.014s
+```
+
+This gives us confidence in our environment.
+
+## Develop the app
+
+```console
+## build and start development server
+$ make dev
+cd ./handlers/dashboard && GOOS=linux go build -o handler . && zip handler.zip handler
+aws-sam-local local start-api -n env.json
+2018/02/16 07:40:32 Fetching lambci/lambda:go1.x image for go1.x runtime...
+Mounting handler (go1.x) at http://127.0.0.1:3000/ [GET]
+```
+
+```console
+## GET the app
+$ curl http://localhost:3000
+<html><body><h1>GoFAAS Dashboard</h1></body></html>
+```
+
+We may want to review all the SAM logs to better understand how our function is envoked...
+
+<details>
+
+```console
+aws-sam-local local start-api -n env.json
+2018/02/16 08:24:33 Connected to Docker 1.35
+2018/02/16 08:24:33 Fetching lambci/lambda:go1.x image for go1.x runtime...
+go1.x: Pulling from lambci/lambda
+Digest: sha256:d77adf847c45dcb5fae3cd93283447fad3f3d51ead024aed0c866a407a206e7c
+Status: Image is up to date for lambci/lambda:go1.x
+
+Mounting handler (go1.x) at http://127.0.0.1:3000/ [GET]
+
+You can now browse to the above endpoints to invoke your functions.
+You do not need to restart/reload SAM CLI while working on your functions,
+changes will be reflected instantly/automatically. You only need to restart
+SAM CLI if you update your AWS SAM template.
+
+2018/02/16 08:24:37 Invoking handler (go1.x)
+2018/02/16 08:24:37 Decompressing /Users/noah/go/src/github.com/nzoschke/gofaas/handlers/dashboard/handler.zip
+2018/02/16 08:24:37 Mounting /private/var/folders/px/fd8j3qvn13gcxw9_nw25pphw0000gn/T/aws-sam-local-1518798277763101448 as /var/task:ro inside runtime container
+START RequestId: 0619a836-ce3d-1819-8edc-2005395b83a6 Version: $LATEST
+END RequestId: 0619a836-ce3d-1819-8edc-2005395b83a6
+REPORT RequestId: 0619a836-ce3d-1819-8edc-2005395b83a6	Duration: 1.56 ms	Billed Duration: 100 ms	Memory Size: 128 MB	Max Memory Used: 5 MB
+```
+</details>
+
+## Deploy the app
+
+```console
+$ make deploy
 ```

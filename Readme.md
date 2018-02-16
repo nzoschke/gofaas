@@ -18,23 +18,25 @@ So this project ties everything together. You can check it out and deploy it wit
 
 It demonstrates:
 
-* Web handler
-* Worker function
-* Function-specific env and capabilities
-* Database
-* Periodic tasks
-* Logs
-* Tracing
-* Notifications
-* Go project layout
-* One-command dev environment
-* One-command deployment
-* Deployment parameters
-* Custom domain
+| Feature                                | With                      |
+| -------------------------------------- |---------------------------|
+| Web handler                            | Lambda + API Gateway      |
+| Worker function                        | Lambda + Invoke API       |
+| Function-specific env and capabilities | Lambda config + IAM roles |
+| Periodic tasks                         | CloudWatch Events         |
+| Database                               | DynamoDB                  |
+| Logs                                   | CloudWatch Logs           |
+| Tracing                                | X-Ray                     |
+| Notifications                          | SNS                       |
+| Go project layout                      | Idiomatic Go              |
+| Dev environment                        | aws-sam-local             |
+| Deployment                             | SAM + CloudFormation      |
+| Custom Domain                          | CloudFront + ACM          |
+
 
 What's remarkable is how little work is required to get all this. By standing on the shoulders of Go and AWS, all the undifferentiated heavy lifting is done. We just have to add our business logic functions.
 
-We don't need a framework or a Platform-as-a-Service or even any 3rd party Software-as-a-Service to accomplish this. We need Go, AWS Lambda, and other AWS infrastructure services.
+We don't need a framework or a Platform-as-a-Service or even any 3rd party Software-as-a-Service to accomplish this. We need Go, AWS Lambda, other AWS infrastructure services, and a config file.
 
 ## Pre-reqs
 

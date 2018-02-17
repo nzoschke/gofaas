@@ -14,12 +14,7 @@ func init() {
 
 // S3 is an S3 client
 func S3() *s3.S3 {
-	sess, err := session.NewSession()
-	if err != nil {
-		panic(err)
-	}
-
-	c := s3.New(sess)
+	c := s3.New(session.Must(session.NewSession()))
 	xray.AWS(c.Client)
 	return c
 }

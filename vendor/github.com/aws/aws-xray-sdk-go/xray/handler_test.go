@@ -38,7 +38,7 @@ func TestRootHandler(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, s.HTTP.Response.Status)
 	assert.Equal(t, "POST", s.HTTP.Request.Method)
-	assert.Equal(t, "/", s.HTTP.Request.URL)
+	assert.Equal(t, ts.URL+"/", s.HTTP.Request.URL)
 	assert.Equal(t, "127.0.0.1", s.HTTP.Request.ClientIP)
 	assert.Equal(t, "UnitTest", s.HTTP.Request.UserAgent)
 }

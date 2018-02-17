@@ -9,6 +9,7 @@
 package xray
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -106,14 +107,14 @@ func TestDefaultConfigureParameters(t *testing.T) {
 	sms, _ := NewDefaultStreamingStrategy()
 	cms := ctxmissing.NewDefaultRuntimeErrorStrategy()
 
-	assert.Equal(t, daemonAddr, privateCfg.daemonAddr)
-	assert.Equal(t, logLevel, privateCfg.logLevel.String())
-	assert.Equal(t, logFormat, privateCfg.logFormat)
-	assert.Equal(t, ss, privateCfg.samplingStrategy)
-	assert.Equal(t, efs, privateCfg.exceptionFormattingStrategy)
-	assert.Equal(t, "", privateCfg.serviceVersion)
-	assert.Equal(t, sms, privateCfg.streamingStrategy)
-	assert.Equal(t, cms, privateCfg.contextMissingStrategy)
+	assert.Equal(t, daemonAddr, globalCfg.daemonAddr)
+	assert.Equal(t, logLevel, globalCfg.logLevel.String())
+	assert.Equal(t, logFormat, globalCfg.logFormat)
+	assert.Equal(t, ss, globalCfg.samplingStrategy)
+	assert.Equal(t, efs, globalCfg.exceptionFormattingStrategy)
+	assert.Equal(t, "", globalCfg.serviceVersion)
+	assert.Equal(t, sms, globalCfg.streamingStrategy)
+	assert.Equal(t, cms, globalCfg.contextMissingStrategy)
 }
 
 func TestSetConfigureParameters(t *testing.T) {
@@ -138,14 +139,14 @@ func TestSetConfigureParameters(t *testing.T) {
 		LogFormat:                   logFormat,
 	})
 
-	assert.Equal(t, &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 3000}, privateCfg.daemonAddr)
-	assert.Equal(t, logLevel, privateCfg.logLevel.String())
-	assert.Equal(t, logFormat, privateCfg.logFormat)
-	assert.Equal(t, ss, privateCfg.samplingStrategy)
-	assert.Equal(t, efs, privateCfg.exceptionFormattingStrategy)
-	assert.Equal(t, sms, privateCfg.streamingStrategy)
-	assert.Equal(t, cms, privateCfg.contextMissingStrategy)
-	assert.Equal(t, serviceVersion, privateCfg.serviceVersion)
+	assert.Equal(t, &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 3000}, globalCfg.daemonAddr)
+	assert.Equal(t, logLevel, globalCfg.logLevel.String())
+	assert.Equal(t, logFormat, globalCfg.logFormat)
+	assert.Equal(t, ss, globalCfg.samplingStrategy)
+	assert.Equal(t, efs, globalCfg.exceptionFormattingStrategy)
+	assert.Equal(t, sms, globalCfg.streamingStrategy)
+	assert.Equal(t, cms, globalCfg.contextMissingStrategy)
+	assert.Equal(t, serviceVersion, globalCfg.serviceVersion)
 
 	ResetConfig()
 }
@@ -156,7 +157,7 @@ func TestSetDaemonAddressEnvironmentVariable(t *testing.T) {
 	daemonAddr := "127.0.0.1:3000"
 	os.Setenv("AWS_XRAY_DAEMON_ADDRESS", "127.0.0.1:4000")
 	Configure(Config{DaemonAddr: daemonAddr})
-	assert.Equal(t, &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 4000}, privateCfg.daemonAddr)
+	assert.Equal(t, &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 4000}, globalCfg.daemonAddr)
 	os.Unsetenv("AWS_XRAY_DAEMON_ADDRESS")
 
 	ResetConfig()
@@ -169,8 +170,44 @@ func TestSetContextMissingEnvironmentVariable(t *testing.T) {
 	r := ctxmissing.NewDefaultRuntimeErrorStrategy()
 	os.Setenv("AWS_XRAY_CONTEXT_MISSING", "RUNTIME_ERROR")
 	Configure(Config{ContextMissingStrategy: cms})
-	assert.Equal(t, r, privateCfg.contextMissingStrategy)
+	assert.Equal(t, r, globalCfg.contextMissingStrategy)
 	os.Unsetenv("AWS_XRAY_CONTEXT_MISSING")
+
+	ResetConfig()
+}
+
+func TestConfigureWithContext(t *testing.T) {
+	daemonAddr := "127.0.0.1:3000"
+	logLevel := "error"
+	logFormat := "[%Level] %Msg%n"
+	serviceVersion := "TestVersion"
+
+	ss := &TestSamplingStrategy{}
+	efs := &TestExceptionFormattingStrategy{}
+	sms := &TestStreamingStrategy{}
+	cms := &TestContextMissingStrategy{}
+
+	ctx, err := ContextWithConfig(context.Background(), Config{
+		DaemonAddr:                  daemonAddr,
+		ServiceVersion:              serviceVersion,
+		SamplingStrategy:            ss,
+		ExceptionFormattingStrategy: efs,
+		StreamingStrategy:           sms,
+		ContextMissingStrategy:      cms,
+		LogLevel:                    logLevel,
+		LogFormat:                   logFormat,
+	})
+
+	cfg := GetRecorder(ctx)
+	assert.Nil(t, err)
+	assert.Equal(t, daemonAddr, cfg.DaemonAddr)
+	assert.Equal(t, logLevel, cfg.LogLevel)
+	assert.Equal(t, logFormat, cfg.LogFormat)
+	assert.Equal(t, ss, cfg.SamplingStrategy)
+	assert.Equal(t, efs, cfg.ExceptionFormattingStrategy)
+	assert.Equal(t, sms, cfg.StreamingStrategy)
+	assert.Equal(t, cms, cfg.ContextMissingStrategy)
+	assert.Equal(t, serviceVersion, cfg.ServiceVersion)
 
 	ResetConfig()
 }

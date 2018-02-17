@@ -21,15 +21,15 @@ func Capture(ctx context.Context, name string, fn func(context.Context) error) (
 	defer func() {
 		if seg != nil {
 			seg.Close(err)
-
 		} else {
-			privateCfg.ContextMissingStrategy().ContextMissing(fmt.Sprintf("failed to end subsegment: subsegment '%v' cannot be found.", name))
+			failedMessage := fmt.Sprintf("failed to end subsegment: subsegment '%v' cannot be found.", name)
+			seg.ParentSegment.GetConfiguration().ContextMissingStrategy.ContextMissing(failedMessage)
 		}
 	}()
 
 	defer func() {
 		if p := recover(); p != nil {
-			err = privateCfg.ExceptionFormattingStrategy().Panicf("%v", p)
+			err = seg.ParentSegment.GetConfiguration().ExceptionFormattingStrategy.Panicf("%v", p)
 			panic(p)
 		}
 	}()

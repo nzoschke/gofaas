@@ -66,22 +66,28 @@ type Segment struct {
 	// Children
 	Subsegments    []json.RawMessage `json:"subsegments,omitempty"`
 	rawSubsegments []*Segment
+
+	// Configuration
+	Configuration *Config `json:"-"`
+
+	// Lambda
+	Facade bool `json:"-"`
 }
 
-// CauseData provides the shape for unmarshaling data that records exception.
+// CauseData provides the shape for unmarshalling data that records exception.
 type CauseData struct {
 	WorkingDirectory string                `json:"working_directory,omitempty"`
 	Paths            []string              `json:"paths,omitempty"`
 	Exceptions       []exception.Exception `json:"exceptions,omitempty"`
 }
 
-// HTTPData provides the shape for unmarshaling request and response data.
+// HTTPData provides the shape for unmarshalling request and response data.
 type HTTPData struct {
 	Request  *RequestData  `json:"request,omitempty"`
 	Response *ResponseData `json:"response,omitempty"`
 }
 
-// RequestData provides the shape for unmarshaling request data.
+// RequestData provides the shape for unmarshalling request data.
 type RequestData struct {
 	Method        string `json:"method,omitempty"`
 	URL           string `json:"url,omitempty"` // http(s)://host/path
@@ -91,18 +97,20 @@ type RequestData struct {
 	Traced        bool   `json:"traced,omitempty"`
 }
 
-// ResponseData provides the shape for unmarshaling response data.
+// ResponseData provides the shape for unmarshalling response data.
 type ResponseData struct {
 	Status        int `json:"status,omitempty"`
 	ContentLength int `json:"content_length,omitempty"`
 }
 
-// ServiceData provides the shape for unmarshaling service version.
+// ServiceData provides the shape for unmarshalling service version.
 type ServiceData struct {
-	Version string `json:"version,omitempty"`
+	Version         string `json:"version,omitempty"`
+	CompilerVersion string `json:"compiler_version,omitempty"`
+	Compiler        string `json:"compiler,omitempty"`
 }
 
-// SQLData provides the shape for unmarshaling sql data.
+// SQLData provides the shape for unmarshalling sql data.
 type SQLData struct {
 	ConnectionString string `json:"connection_string,omitempty"`
 	URL              string `json:"url,omitempty"` // host:port/database
@@ -188,4 +196,12 @@ func (d *HTTPData) GetResponse() *ResponseData {
 		d.Response = &ResponseData{}
 	}
 	return d.Response
+}
+
+// GetConfiguration returns a value of Config.
+func (s *Segment) GetConfiguration() *Config {
+	if s.Configuration == nil {
+		s.Configuration = &Config{}
+	}
+	return s.Configuration
 }

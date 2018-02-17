@@ -8,8 +8,10 @@
 
 package plugins
 
-import (
-	"github.com/aws/aws-sdk-go/aws/ec2metadata"
+const (
+	EBServiceName  = "elastic_beanstalk"
+	EC2ServiceName = "ec2"
+	ECSServiceName = "ecs"
 )
 
 // InstancePluginMetadata points to the PluginMetadata struct.
@@ -19,19 +21,33 @@ var InstancePluginMetadata = &PluginMetadata{}
 // about the AWS infrastructure hosting the traced application.
 type PluginMetadata struct {
 
-	// IdentityDocument records the shape for unmarshaling an
-	// EC2 instance identity document.
-	IdentityDocument *ec2metadata.EC2InstanceIdentityDocument
+	// EC2Metadata records the ec2 instance ID and availability zone.
+	EC2Metadata *EC2Metadata
 
 	// BeanstalkMetadata records the Elastic Beanstalk
 	// environment name, version label, and deployment ID.
 	BeanstalkMetadata *BeanstalkMetadata
 
-	// ECSContainerName records the ECS container ID.
-	ECSContainerName string
+	// ECSMetadata records the ECS container ID.
+	ECSMetadata *ECSMetadata
+
+	// Origin records original service of the segment.
+	Origin string
 }
 
-// BeanstalkMetadata provides the shape for unmarshaling
+// EC2Metadata provides the shape for unmarshalling EC2 metadata.
+type EC2Metadata struct {
+	InstanceID       string `json:"instance_id"`
+	AvailabilityZone string `json:"availability_zone"`
+}
+
+// ECSMetadata provides the shape for unmarshalling
+// ECS metadata.
+type ECSMetadata struct {
+	ContainerName string `json:"container"`
+}
+
+// BeanstalkMetadata provides the shape for unmarshalling
 // Elastic Beanstalk environment metadata.
 type BeanstalkMetadata struct {
 	Environment  string `json:"environment_name"`

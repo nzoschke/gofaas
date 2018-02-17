@@ -1,4 +1,5 @@
 #!/bin/bash
+set -ex
 
 mkdir -p src/$PKG && cd src/$PKG
 run -s "Cloning"  git clone $URL --branch $REF --single-branch .

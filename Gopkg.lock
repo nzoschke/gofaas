@@ -40,6 +40,8 @@
     "private/protocol/restxml",
     "private/protocol/xml/xmlutil",
     "service/s3",
+    "service/s3/s3iface",
+    "service/s3/s3manager",
     "service/sts"
   ]
   revision = "bff41fb23b7550368282029f6478819d6a99ae0f"
@@ -57,8 +59,8 @@
     "strategy/sampling",
     "xray"
   ]
-  revision = "32670489212454717deeafb8da5dbb1da0299749"
-  version = "v0.9.4"
+  revision = "a53963a5ff9b8e55fe62e8f2f14afd6e40dcb627"
+  version = "v1.0.0-rc.1"
 
 [[projects]]
   name = "github.com/cihub/seelog"
@@ -110,6 +112,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "39b4745404b529480becfcb9ada0e00f7457a7707255fb34bc05e072eca44010"
+  inputs-digest = "83641ba724033d1d081460339f4e5d61fb2a82da457c1a92f501fd0640a560c6"
   solver-name = "gps-cdcl"
   solver-version = 1

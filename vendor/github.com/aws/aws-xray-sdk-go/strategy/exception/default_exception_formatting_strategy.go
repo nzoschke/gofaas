@@ -15,6 +15,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/pkg/errors"
 )
 
@@ -23,15 +24,16 @@ type StackTracer interface {
 	StackTrace() []uintptr
 }
 
-// Exception provides the shape for unmarshaling an exception.
+// Exception provides the shape for unmarshalling an exception.
 type Exception struct {
 	ID      string  `json:"id,omitempty"`
 	Type    string  `json:"type,omitempty"`
 	Message string  `json:"message,omitempty"`
 	Stack   []Stack `json:"stack,omitempty"`
+	Remote  bool    `json:"remote,omitempty"`
 }
 
-// Stack provides the shape for unmarshaling an stack.
+// Stack provides the shape for unmarshalling an stack.
 type Stack struct {
 	Path  string `json:"path,omitempty"`
 	Line  int    `json:"line,omitempty"`
@@ -113,10 +115,18 @@ func (dEFS *DefaultFormattingStrategy) Panicf(formatString string, args ...inter
 
 // ExceptionFromError takes an error and returns value of Exception
 func (dEFS *DefaultFormattingStrategy) ExceptionFromError(err error) Exception {
+	var isRemote bool
+	if reqErr, ok := err.(awserr.RequestFailure); ok {
+		// A service error occurs
+		if reqErr.RequestID() != "" {
+			isRemote = true
+		}
+	}
 	e := Exception{
 		ID:      newExceptionID(),
 		Type:    "error",
 		Message: err.Error(),
+		Remote:  isRemote,
 	}
 
 	if err, ok := err.(*XRayError); ok {

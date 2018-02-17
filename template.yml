@@ -1,5 +1,5 @@
+---
 AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
 
 Outputs:
   URL:
@@ -7,7 +7,6 @@ Outputs:
 
 Resources:
   DashboardFunction:
-    Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./handlers/dashboard/handler.zip
       Environment:
@@ -16,11 +15,14 @@ Resources:
           CLIENT_SECRET: "secret"
       Events:
         Request:
-          Type: Api
           Properties:
-            Path: /
             Method: GET
+            Path: /
+          Type: Api
       Handler: handler
       Runtime: go1.x
       Timeout: 5
       Tracing: Active
+    Type: AWS::Serverless::Function
+
+Transform: AWS::Serverless-2016-10-31

@@ -13,7 +13,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http/httptrace"
 	"reflect"
@@ -68,7 +67,7 @@ var xRayAfterBuildHandler = request.NamedHandler{
 var xRayBeforeSignHandler = request.NamedHandler{
 	Name: "XRayBeforeSignHandler",
 	Fn: func(r *request.Request) {
-		ctx, _ := BeginSubsegment(r.HTTPRequest.Context(), fmt.Sprintf("attempt_%d", (r.RetryCount+1)))
+		ctx, _ := BeginSubsegment(r.HTTPRequest.Context(), "attempt")
 
 		ct, _ := NewClientTrace(ctx)
 		r.HTTPRequest = r.HTTPRequest.WithContext(httptrace.WithClientTrace(ctx, ct.httpTrace))
@@ -98,7 +97,7 @@ var xRayAfterSendHandler = request.NamedHandler{
 var xRayBeforeUnmarshalHandler = request.NamedHandler{
 	Name: "XRayBeforeUnmarshalHandler",
 	Fn: func(r *request.Request) {
-		endSubsegment(r) // end attempt_x subsegment
+		endSubsegment(r) // end attempt subsegment
 		beginSubsegment(r, "unmarshal")
 	},
 }
@@ -113,7 +112,7 @@ var xRayAfterUnmarshalHandler = request.NamedHandler{
 var xRayBeforeRetryHandler = request.NamedHandler{
 	Name: "XRayBeforeRetryHandler",
 	Fn: func(r *request.Request) {
-		endSubsegment(r) // end attempt_x subsegment
+		endSubsegment(r) // end attempt subsegment
 		ctx, _ := BeginSubsegment(r.HTTPRequest.Context(), "wait")
 
 		r.HTTPRequest = r.HTTPRequest.WithContext(ctx)

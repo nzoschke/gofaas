@@ -15,6 +15,7 @@ import (
 	"net/http/httptrace"
 )
 
+// HTTPSubsegments is a set of context in different HTTP operation.
 type HTTPSubsegments struct {
 	opCtx       context.Context
 	connCtx     context.Context
@@ -23,6 +24,12 @@ type HTTPSubsegments struct {
 	tlsCtx      context.Context
 	reqCtx      context.Context
 	responseCtx context.Context
+}
+
+// NewHTTPSubsegments creates a new HTTPSubsegments to use in
+// httptrace.ClientTrace functions
+func NewHTTPSubsegments(opCtx context.Context) *HTTPSubsegments {
+	return &HTTPSubsegments{opCtx: opCtx}
 }
 
 // GetConn begins a connect subsegment if the HTTP operation
@@ -152,6 +159,7 @@ func (xt *HTTPSubsegments) GotFirstResponseByte() {
 	}
 }
 
+// ClientTrace is a set of pointers of HTTPSubsegments and ClientTrace.
 type ClientTrace struct {
 	subsegments *HTTPSubsegments
 	httpTrace   *httptrace.ClientTrace
@@ -166,9 +174,7 @@ func NewClientTrace(opCtx context.Context) (ct *ClientTrace, err error) {
 		return nil, errors.New("opCtx must be non-nil")
 	}
 
-	segs := &HTTPSubsegments{
-		opCtx: opCtx,
-	}
+	segs := NewHTTPSubsegments(opCtx)
 
 	return &ClientTrace{
 		subsegments: segs,

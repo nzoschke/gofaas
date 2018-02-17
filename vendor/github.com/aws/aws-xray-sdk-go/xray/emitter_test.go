@@ -37,9 +37,9 @@ func TestStreamingSegmentsOnChildNode(t *testing.T) {
 	assert.NoError(t, json.Unmarshal([]byte(getTestSegment()), &seg))
 	assert.NoError(t, json.Unmarshal([]byte(getTestSegment()), &subSeg))
 	subSeg.parent = seg
-	subSeg.ParentSegment = seg
-	seg.Sampled = true
 	seg.ParentSegment = seg
+	subSeg.ParentSegment = seg.ParentSegment
+	seg.Sampled = true
 	seg.totalSubSegments = 22
 
 	for i := 0; i < 22; i++ {

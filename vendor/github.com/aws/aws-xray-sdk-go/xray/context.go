@@ -22,6 +22,18 @@ var ContextKey = new(ContextKeytype)
 // ErrRetrieveSegment happens when a segment cannot be retrieved
 var ErrRetrieveSegment = errors.New("unable to retrieve segment")
 
+// RecorderContextKey records the key for Config value.
+type RecorderContextKey struct{}
+
+// GetRecorder returns a pointer to the config struct provided
+// in ctx, or nil if no config is set.
+func GetRecorder(ctx context.Context) *Config {
+	if seg, ok := ctx.Value(RecorderContextKey{}).(*Config); ok {
+		return seg
+	}
+	return nil
+}
+
 // GetSegment returns a pointer to the segment or subsegment provided
 // in ctx, or nil if no segment or subsegment is found.
 func GetSegment(ctx context.Context) *Segment {

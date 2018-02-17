@@ -68,11 +68,7 @@ func (dSS *DefaultStreamingStrategy) StreamCompletedSubsegments(seg *Segment) []
 
 		// Add extra information into child subsegment
 		child.Lock()
-		child.TraceID = seg.root().TraceID
-		child.ParentID = seg.ID
-		child.Type = "subsegment"
-		child.parent = nil
-		child.RequestWasTraced = seg.RequestWasTraced
+		child.beforeEmitSubsegment(seg)
 		cb, _ := json.Marshal(child)
 		outSegments = append(outSegments, cb)
 		log.Tracef("Streaming subsegment named '%s' from segment tree.", child.Name)

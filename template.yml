@@ -6,6 +6,9 @@ Outputs:
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ServerlessRestApiProdStage}"
 
 Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+
   DashboardFunction:
     Properties:
       CodeUri: ./handlers/dashboard/handler.zip
@@ -20,6 +23,21 @@ Resources:
             Path: /
           Type: Api
       Handler: handler
+      Runtime: go1.x
+      Timeout: 5
+      Tracing: Active
+    Type: AWS::Serverless::Function
+
+  WorkerFunction:
+    Properties:
+      CodeUri: ./handlers/worker/handler.zip
+      Environment:
+        Variables:
+          BUCKET: !Ref Bucket
+      Handler: handler
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref Bucket
       Runtime: go1.x
       Timeout: 5
       Tracing: Active

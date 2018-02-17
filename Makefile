@@ -2,6 +2,8 @@ AWS_REGION ?= us-west-2
 APP = gofaas
 PKG = github.com/nzoschke/$(APP)
 
+app: dev
+
 clean:
 	rm -f ./handlers/dashboard/{handler,handler.zip}
 

@@ -6,48 +6,48 @@ Demo app that uses idiomatic Go and AWS.
 
 I'm here to share a secret: Go in AWS Lambda is one of the best ways to write and run code.
 
-Brandur recently wrote a great post: [Speed and Stability: Why Go is a Great Fit for Lambda](https://brandur.org/go-lambda). Having used Go in Lambda for years, I couldn't agree more. Running Go code on Lambda has resulted in systems that are the most cheap, fast, reliable, operational, and secure I have ever encountered.
+Brandur recently wrote a great post: [Speed and Stability: Why Go is a Great Fit for Lambda](https://brandur.org/go-lambda). Having used Go in Lambda for years, I couldn't agree more. Go in Lambda has resulted in systems that are the most cheap, fast, reliable, operational, and secure I have ever encountered.
 
 Up until recently, this was only possible through hacks -- execution shims, heavy middleware, and no dev/prod parity.
 
-That's because Go and AWS Lambda landscape is evolving very quickly. Offical Go support for Lambda was launched only a month ago. Go 1.10 is still in beta, and `dep` is under active development. The AWS Serverless Application Model (SAM) is in beta and hasn't got much attention yet.
+That's because Go and AWS Lambda landscape is evolving very quickly. Offical Go support for Lambda was launched only a month ago. Go 1.10 is hot off the press, and `dep` is under active development. The AWS Serverless Application Model (SAM) is in beta and hasn't got much attention yet.
 
-However it's crystal clear that these techniques are the best practices.
+However it's clear that these tools and services are a rock solid foundation for building systems upon.
 
-So this project ties everything together. You can check it out and deploy it with a couple commands to get a feel for the tools. And you can fill in the blanks to turn it into your own web app.
+This project demonstrates such a foundation. You can clone and deploy it with a few commands to get a feel for the stack. Or you can fork and rework it to turn it into your own web app.
 
 It demonstrates:
 
-| Feature                                | With                      |
-| -------------------------------------- |---------------------------|
-| Web handler                            | Lambda + API Gateway      |
-| Worker function                        | Lambda + Invoke API       |
-| Function-specific env and capabilities | Lambda config + IAM roles |
-| Periodic tasks                         | CloudWatch Events         |
-| Database                               | DynamoDB                  |
-| Logs                                   | CloudWatch Logs           |
-| Tracing                                | X-Ray                     |
-| Notifications                          | SNS                       |
-| Go project layout                      | Idiomatic Go              |
-| Dev environment                        | aws-sam-local             |
-| Deployment                             | SAM + CloudFormation      |
-| Custom Domain                          | CloudFront + ACM          |
+| Component                              | Via                          | Status |
+| -------------------------------------- |------------------------------|--------|
+| [Web handler](#web-handler)            | Lambda + API Gateway         |   ✓    |
+| [Worker function](#worker-function)    | Lambda + Invoke API          |   ✓    |
+| Function-specific env and capabilities | Lambda config + IAM policies |   ✓    |
+| Periodic tasks                         | CloudWatch Events            |   ✓    |
+| Database                               | DynamoDB                     |        |
+| Logs                                   | CloudWatch Logs              |   ✓    |
+| Tracing                                | X-Ray                        |   ✓    |
+| Notifications                          | SNS                          |        |
+| Go project layout                      | Idiomatic Go                 |   ✓    |
+| Dev environment                        | aws-sam-local                |   ✓    |
+| Deployment                             | SAM + CloudFormation         |   ✓    |
+| Custom Domain                          | CloudFront + ACM             |        |
 
 
 What's remarkable is how little work is required to get all this. By standing on the shoulders of Go and AWS, all the undifferentiated heavy lifting is done. We just have to add our business logic functions.
 
-We don't need a framework or a Platform-as-a-Service or even any 3rd party Software-as-a-Service to accomplish this. We need Go, AWS Lambda, other AWS infrastructure services, and a config file.
+We don't need a framework or a Platform-as-a-Service or even any 3rd party Software-as-a-Service to accomplish this. We need Go, an AWS account and a config file.
 
-## Pre-reqs
+## Quick Start
 
-This app uses [Go 1.10 beta](https://beta.golang.org/), [dep](https://github.com/golang/dep), [AWS CLI](https://aws.amazon.com/cli/), [AWS SAM Local](https://docs.aws.amazon.com/lambda/latest/dg/test-sam-local.html) and [Docker for Mac](https://www.docker.com/docker-mac).
+This project uses [Go 1.10](https://golang.org/), [dep](https://github.com/golang/dep), [AWS CLI](https://aws.amazon.com/cli/), [AWS SAM Local](https://docs.aws.amazon.com/lambda/latest/dg/test-sam-local.html) and [Docker for Mac](https://www.docker.com/docker-mac).
 
 ```console
 ## install tools
 
 $ brew install aws-cli
-$ brew install go --devel
-$ go get github.com/awslabs/aws-sam-local 
+$ brew install go
+$ go get -u github.com/awslabs/aws-sam-local 
 $ go get -u github.com/golang/dep/cmd/dep
 ```
 
@@ -60,6 +60,9 @@ $ go get -u github.com/golang/dep/cmd/dep
 
 $ aws --version
 aws-cli/1.14.40 Python/3.6.4 Darwin/17.4.0 botocore/1.8.44
+
+$ aws-sam-local -v
+sam version snapshot
 
 $ docker version
 Client:
@@ -81,10 +84,7 @@ Server:
   Experimental:	true
 
 $ go version
-go version go1.10rc2 darwin/amd64
-
-$ aws-sam-local -v
-sam version snapshot
+go version go1.10 darwin/amd64
 ```
 </details>
 
@@ -102,7 +102,7 @@ Then configure the CLI. Here we are creating a new profile that we can switch to
 $ aws configure --profile gofaas
 AWS Access Key ID [None]: AKIA................
 AWS Secret Access Key [None]: PQN4CWZXXbJEgnrom2fP0Z+z................
-Default region name [None]: us-east-1
+Default region name [None]: us-west-2
 Default output format [None]: json
 
 ## configure this session to use the profile
@@ -124,7 +124,7 @@ $ aws iam get-user
 ```
 </details>
 
-## Get the app
+### Get the app
 
 We start by getting and testing the `github.com/nzoschke/gofaas`.
 
@@ -141,9 +141,9 @@ $ make test
 ok  	github.com/nzoschke/gofaas	0.014s
 ```
 
-This gives us confidence in our environment.
+This gives us confidence in our Go environment.
 
-## Develop the app
+### Develop the app
 
 ```console
 ## build and start development server
@@ -159,12 +159,15 @@ Mounting handler (go1.x) at http://127.0.0.1:3000/ [GET]
 
 $ curl http://localhost:3000
 <html><body><h1>GoFAAS Dashboard</h1></body></html>
+
+## invoke the worker
+
+$ echo '{}' | aws-sam-local local invoke WorkerFunction
+2018/02/17 20:00:58 Worker Event: {SourceIP: TimeEnd:0001-01-01 00:00:00 +0000 UTC TimeStart:0001-01-01 00:00:00 +0000 UTC}
 ```
 
-We may want to review all the SAM logs to better understand how our function is invoked...
-
 <details>
-<summary>Review all SAM logs to better understand function invocation...</summary>
+<summary>We may want to review all SAM logs to better understand function invocation...</summary>
 &nbsp;
 
 ```console
@@ -190,10 +193,21 @@ SAM CLI if you update your AWS SAM template.
 START RequestId: 0619a836-ce3d-1819-8edc-2005395b83a6 Version: $LATEST
 END RequestId: 0619a836-ce3d-1819-8edc-2005395b83a6
 REPORT RequestId: 0619a836-ce3d-1819-8edc-2005395b83a6	Duration: 1.56 ms	Billed Duration: 100 ms	Memory Size: 128 MB	Max Memory Used: 5 MB
+
+2018/02/17 12:00:37 Reading invoke payload from stdin (you can also pass it from file with --event)
+2018/02/17 12:00:37 Invoking handler (go1.x)
+2018/02/17 12:00:37 Decompressing /Users/noah/go/src/github.com/nzoschke/gofaas/handlers/worker/handler.zip
+2018/02/17 12:00:37 Mounting /private/var/folders/px/fd8j3qvn13gcxw9_nw25pphw0000gn/T/aws-sam-local-1518897637127351189 as /var/task:ro inside runtime container
+START RequestId: 996f94f4-2fbe-16af-f33a-5e70e0199f35 Version: $LATEST
+2018/02/17 20:00:58 Worker Event: {SourceIP: TimeEnd:0001-01-01 00:00:00 +0000 UTC TimeStart:0001-01-01 00:00:00 +0000 UTC}
+END RequestId: 996f94f4-2fbe-16af-f33a-5e70e0199f35
+REPORT RequestId: 996f94f4-2fbe-16af-f33a-5e70e0199f35	Duration: 486.90 ms	Billed Duration: 500 ms	Memory Size: 128 MB	Max Memory Used: 13 MB	
 ```
 </details>
 
-## Deploy the app
+This gives us confidence in our development environment.
+
+### Deploy the app
 
 ```console
 ## package and deploy the app
@@ -205,10 +219,20 @@ Uploading to 59d2ea5b6bdf38fcbcf62236f4c26f21  3018471 / 3018471.0  (100.00%)
 Waiting for changeset to be created
 Waiting for stack create/update to complete
 Successfully created/updated stack - gofaas
-URL	https://sgq3ldm2u4.execute-api.us-east-1.amazonaws.com/Prod
+URL	https://x19vpdk568.execute-api.us-west-2.amazonaws.com/Prod
 
 ## request the app
 
-$ curl https://sgq3ldm2u4.execute-api.us-east-1.amazonaws.com/Prod
+$ curl https://x19vpdk568.execute-api.us-west-2.amazonaws.com/Prod
 <html><body><h1>GoFAAS Dashboard</h1></body></html>
 ```
+
+This gives us confidence in our production environment.
+
+## Components
+
+### Web Handler
+
+### Worker function
+
+Stay tuned...

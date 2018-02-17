@@ -74,7 +74,7 @@ Resources:
   WorkerPeriodicRule:
     Properties:
       Description: ScheduledRule
-      ScheduleExpression: "rate(1 minute)"
+      ScheduleExpression: "rate(1 day)"
       State: ENABLED
       Targets:
         - Arn: !GetAtt WorkerPeriodicFunction.Arn

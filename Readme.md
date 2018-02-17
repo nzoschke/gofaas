@@ -196,5 +196,19 @@ REPORT RequestId: 0619a836-ce3d-1819-8edc-2005395b83a6	Duration: 1.56 ms	Billed 
 ## Deploy the app
 
 ```console
+## package and deploy the app
+
 $ make deploy
+
+make_bucket: pkgs-572007530218-us-west-2
+Uploading to 59d2ea5b6bdf38fcbcf62236f4c26f21  3018471 / 3018471.0  (100.00%)
+Waiting for changeset to be created
+Waiting for stack create/update to complete
+Successfully created/updated stack - gofaas
+URL	https://sgq3ldm2u4.execute-api.us-east-1.amazonaws.com/Prod
+
+## request the app
+
+$ curl https://sgq3ldm2u4.execute-api.us-east-1.amazonaws.com/Prod
+<html><body><h1>GoFAAS Dashboard</h1></body></html>
 ```

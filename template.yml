@@ -43,4 +43,42 @@ Resources:
       Tracing: Active
     Type: AWS::Serverless::Function
 
+  WorkerPeriodicFunction:
+    Properties:
+      CodeUri: ./handlers/worker-periodic/handler.zip
+      Environment:
+        Variables:
+          BUCKET: !Ref Bucket
+      Events:
+        Request:
+          Type: CloudWatchEvent
+          Properties:
+            Pattern:
+              source: ["aws.events"]
+      Handler: handler
+      Policies:
+        - AmazonS3FullAccess
+      Runtime: go1.x
+      Timeout: 5
+      Tracing: Active
+    Type: AWS::Serverless::Function
+
+  WorkerPeriodicPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref WorkerPeriodicFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt WorkerPeriodicRule.Arn
+
+  WorkerPeriodicRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: ScheduledRule
+      ScheduleExpression: "rate(1 minute)"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt WorkerPeriodicFunction.Arn
+          Id: WorkerPeriodicFunction
+
 Transform: AWS::Serverless-2016-10-31

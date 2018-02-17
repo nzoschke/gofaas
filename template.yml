@@ -1,6 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+Outputs:
+  URL:
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ServerlessRestApiProdStage}"
+
 Resources:
   DashboardFunction:
     Type: AWS::Serverless::Function
@@ -17,7 +21,6 @@ Resources:
             Path: /
             Method: GET
       Handler: handler
-      Role: !GetAtt FunctionRole.Arn
       Runtime: go1.x
       Timeout: 5
       Tracing: Active

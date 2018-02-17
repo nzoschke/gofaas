@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -25,7 +26,7 @@ func Worker(ctx context.Context, e WorkerEvent) error {
 
 	b, err := json.Marshal(e)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	_, err = S3().PutObjectWithContext(ctx, &s3.PutObjectInput{
@@ -33,5 +34,5 @@ func Worker(ctx context.Context, e WorkerEvent) error {
 		Bucket: aws.String(os.Getenv("BUCKET")),
 		Key:    aws.String(uuid.NewV4().String()),
 	})
-	return err
+	return errors.WithStack(err)
 }

@@ -35,6 +35,9 @@ Resources:
         Variables:
           BUCKET: !Ref Bucket
       Handler: handler
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref Bucket
       Runtime: go1.x
       Timeout: 5
       Tracing: Active

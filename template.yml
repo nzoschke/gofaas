@@ -51,10 +51,10 @@ Resources:
           BUCKET: !Ref Bucket
       Events:
         Request:
-          Type: CloudWatchEvent
           Properties:
             Pattern:
               source: ["aws.events"]
+          Type: CloudWatchEvent
       Handler: handler
       Policies:
         - AmazonS3FullAccess
@@ -64,15 +64,14 @@ Resources:
     Type: AWS::Serverless::Function
 
   WorkerPeriodicPermission:
-    Type: AWS::Lambda::Permission
     Properties:
-      FunctionName: !Ref WorkerPeriodicFunction
       Action: lambda:InvokeFunction
+      FunctionName: !Ref WorkerPeriodicFunction
       Principal: events.amazonaws.com
       SourceArn: !GetAtt WorkerPeriodicRule.Arn
+    Type: AWS::Lambda::Permission
 
   WorkerPeriodicRule:
-    Type: AWS::Events::Rule
     Properties:
       Description: ScheduledRule
       ScheduleExpression: "rate(1 minute)"
@@ -80,5 +79,6 @@ Resources:
       Targets:
         - Arn: !GetAtt WorkerPeriodicFunction.Arn
           Id: WorkerPeriodicFunction
+    Type: AWS::Events::Rule
 
 Transform: AWS::Serverless-2016-10-31

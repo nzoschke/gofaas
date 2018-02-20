@@ -1,4 +1,4 @@
-export AWS_DEFAULT_REGION ?= us-west-2
+export AWS_DEFAULT_REGION ?= us-east-1
 APP = gofaas
 PKG = github.com/nzoschke/$(APP)
 

@@ -12,8 +12,16 @@ Globals:
     Tracing: Active
 
 Outputs:
-  URL:
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ServerlessRestApiProdStage}"
+  ApiDistributionDomainName:
+    Condition: ApiDomainNameSpecified
+    Value: !GetAtt ApiGatewayDomainName.DistributionDomainName
+
+  ApiUrl:
+    Value:
+      !If
+      - ApiDomainNameSpecified
+      - !Sub https://${ApiDomainName}
+      - !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ServerlessRestApiProdStage}"
 
 Parameters:
   ApiDomainName:

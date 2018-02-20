@@ -98,7 +98,7 @@ Then configure the CLI. Here we are creating a new profile that we can switch to
 $ aws configure --profile gofaas
 AWS Access Key ID [None]: AKIA................
 AWS Secret Access Key [None]: PQN4CWZXXbJEgnrom2fP0Z+z................
-Default region name [None]: us-west-2
+Default region name [None]: us-east-1
 Default output format [None]: json
 
 ## configure this session to use the profile
@@ -210,16 +210,16 @@ This gives us confidence in our development environment.
 
 $ make deploy
 
-make_bucket: pkgs-572007530218-us-west-2
+make_bucket: pkgs-572007530218-us-east-1
 Uploading to 59d2ea5b6bdf38fcbcf62236f4c26f21  3018471 / 3018471.0  (100.00%)
 Waiting for changeset to be created
 Waiting for stack create/update to complete
 Successfully created/updated stack - gofaas
-URL	https://x19vpdk568.execute-api.us-west-2.amazonaws.com/Prod
+ApiUrl	https://x19vpdk568.execute-api.us-east-1.amazonaws.com/Prod
 
 ## request the app
 
-$ curl https://x19vpdk568.execute-api.us-west-2.amazonaws.com/Prod
+$ curl https://x19vpdk568.execute-api.us-east-1.amazonaws.com/Prod
 <html><body><h1>GoFAAS Dashboard</h1></body></html>
 ```
 

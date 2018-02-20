@@ -18,21 +18,17 @@ This project demonstrates such a foundation. You can clone and deploy it with a 
 
 It demonstrates:
 
-| Component                              | Via                          | Status |
-| -------------------------------------- |------------------------------|--------|
-| [Web handler](#web-handler)            | Lambda + API Gateway         |   ✓    |
-| [Worker function](#worker-function)    | Lambda + Invoke API          |   ✓    |
-| Function-specific env and capabilities | Lambda config + IAM policies |   ✓    |
-| Periodic tasks                         | CloudWatch Events            |   ✓    |
-| Database                               | DynamoDB                     |        |
-| Logs                                   | CloudWatch Logs              |   ✓    |
-| Tracing                                | X-Ray                        |   ✓    |
-| Notifications                          | SNS                          |        |
-| Go project layout                      | Idiomatic Go                 |   ✓    |
-| Dev environment                        | aws-sam-local                |   ✓    |
-| Deployment                             | SAM + CloudFormation         |   ✓    |
-| Custom Domain                          | CloudFront + ACM             |        |
-
+| Component                               | Via                                     | Status |
+| --------------------------------------- |-----------------------------------------|--------|
+| Web functions                           | Lambda, API Gateway                     |   ✓    |
+| Worker functions (one-off and periodic) | Lambda, Invoke API, CloudWatch Events   |   ✓    |
+| Packaging, development and deployment   | make, go, sam, CloudFormation (SAM)     |   ✓    |
+| Per-function environment and policies   | Lambda, IAM                             |        |
+| Custom domains                          | CloudFront, ACM                         |   ✓    |
+| Logs, Tracing                           | CloudWatch Logs, X-Ray, AWS SDKs for Go |   ✓    |
+| Notifications                           | SNS                                     |        |
+| Databases                               | DynamoDB                                |        |
+| Encryption                              | KMS                                     |        |
 
 What's remarkable is how little work is required to get all this. By standing on the shoulders of Go and AWS, all the undifferentiated heavy lifting is done. We just have to add our business logic functions.
 
@@ -102,7 +98,7 @@ Then configure the CLI. Here we are creating a new profile that we can switch to
 $ aws configure --profile gofaas
 AWS Access Key ID [None]: AKIA................
 AWS Secret Access Key [None]: PQN4CWZXXbJEgnrom2fP0Z+z................
-Default region name [None]: us-west-2
+Default region name [None]: us-east-1
 Default output format [None]: json
 
 ## configure this session to use the profile
@@ -214,16 +210,16 @@ This gives us confidence in our development environment.
 
 $ make deploy
 
-make_bucket: pkgs-572007530218-us-west-2
+make_bucket: pkgs-572007530218-us-east-1
 Uploading to 59d2ea5b6bdf38fcbcf62236f4c26f21  3018471 / 3018471.0  (100.00%)
 Waiting for changeset to be created
 Waiting for stack create/update to complete
 Successfully created/updated stack - gofaas
-URL	https://x19vpdk568.execute-api.us-west-2.amazonaws.com/Prod
+ApiUrl	https://x19vpdk568.execute-api.us-east-1.amazonaws.com/Prod
 
 ## request the app
 
-$ curl https://x19vpdk568.execute-api.us-west-2.amazonaws.com/Prod
+$ curl https://x19vpdk568.execute-api.us-east-1.amazonaws.com/Prod
 <html><body><h1>GoFAAS Dashboard</h1></body></html>
 ```
 
@@ -231,8 +227,8 @@ This gives us confidence in our production environment.
 
 ## Components
 
-### Web Handler
+### Web functions
 
 ### Worker function
 
-Stay tuned...
+Stay tuned for more docs and tutorials about how it all works...

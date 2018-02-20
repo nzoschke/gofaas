@@ -1,6 +1,9 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
 
+Conditions:
+  ApiDomainNameSpecified: !Not [!Equals [!Ref ApiDomainName, ""]]
+
 Globals:
   Function:
     Handler: handler
@@ -9,10 +12,44 @@ Globals:
     Tracing: Active
 
 Outputs:
-  URL:
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ServerlessRestApiProdStage}"
+  ApiDistributionDomainName:
+    Condition: ApiDomainNameSpecified
+    Value: !GetAtt ApiGatewayDomainName.DistributionDomainName
+
+  ApiUrl:
+    Value:
+      !If
+      - ApiDomainNameSpecified
+      - !Sub https://${ApiDomainName}
+      - !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ServerlessRestApiProdStage}"
+
+Parameters:
+  ApiDomainName:
+    Default: ""
+    Type: String
 
 Resources:
+  ApiGatewayCertificate:
+    Condition: ApiDomainNameSpecified
+    Properties:
+      DomainName: !Ref ApiDomainName
+    Type: AWS::CertificateManager::Certificate
+
+  ApiGatewayDomainName:
+    Condition: ApiDomainNameSpecified
+    Properties:
+      CertificateArn: !Ref ApiGatewayCertificate
+      DomainName: !Ref ApiDomainName
+    Type: AWS::ApiGateway::DomainName
+
+  ApiGatewayMapping:
+    Condition: ApiDomainNameSpecified
+    Properties:
+      DomainName: !Ref ApiGatewayDomainName
+      RestApiId: !Ref ServerlessRestApi
+      Stage: !Ref ServerlessRestApiProdStage
+    Type: AWS::ApiGateway::BasePathMapping
+
   Bucket:
     Type: AWS::S3::Bucket
 

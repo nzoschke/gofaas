@@ -10,10 +10,11 @@ clean:
 	rm -f ./handlers/worker-periodic/{handler,handler.zip}
 
 deploy: BUCKET = pkgs-$(shell aws sts get-caller-identity --output text --query 'Account')-$(AWS_DEFAULT_REGION)
+deploy: PARAMS ?= "="
 deploy: handlers
 	@aws s3api head-bucket --bucket $(BUCKET) || aws s3 mb s3://$(BUCKET) --region $(AWS_DEFAULT_REGION)
 	aws cloudformation package --output-template-file out.yml --s3-bucket $(BUCKET) --template-file template.yml
-	aws cloudformation deploy --capabilities CAPABILITY_NAMED_IAM --template-file out.yml --stack-name $(APP)
+	aws cloudformation deploy --capabilities CAPABILITY_NAMED_IAM --parameter-overrides $(PARAMS) --template-file out.yml --stack-name $(APP)
 	aws cloudformation describe-stacks --output text --query 'Stacks[*].Outputs' --stack-name $(APP)
 
 dev: handlers

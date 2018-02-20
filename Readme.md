@@ -18,21 +18,17 @@ This project demonstrates such a foundation. You can clone and deploy it with a 
 
 It demonstrates:
 
-| Component                              | Via                          | Status |
-| -------------------------------------- |------------------------------|--------|
-| [Web handler](#web-handler)            | Lambda + API Gateway         |   ✓    |
-| [Worker function](#worker-function)    | Lambda + Invoke API          |   ✓    |
-| Function-specific env and capabilities | Lambda config + IAM policies |   ✓    |
-| Periodic tasks                         | CloudWatch Events            |   ✓    |
-| Database                               | DynamoDB                     |        |
-| Logs                                   | CloudWatch Logs              |   ✓    |
-| Tracing                                | X-Ray                        |   ✓    |
-| Notifications                          | SNS                          |        |
-| Go project layout                      | Idiomatic Go                 |   ✓    |
-| Dev environment                        | aws-sam-local                |   ✓    |
-| Deployment                             | SAM + CloudFormation         |   ✓    |
-| Custom Domain                          | CloudFront + ACM             |        |
-
+| Component                               | Via                                     | Status |
+| --------------------------------------- |-----------------------------------------|--------|
+| Web functions                           | Lambda, API Gateway                     |   ✓    |
+| Worker functions (one-off and periodic) | Lambda, Invoke API, CloudWatch Events   |   ✓    |
+| Packaging, development and deployment   | make, go, sam, CloudFormation (SAM)     |   ✓    |
+| Per-function environment and policies   | Lambda, IAM                             |        |
+| Custom domains                          | CloudFront, ACM                         |   ✓    |
+| Logs, Tracing                           | CloudWatch Logs, X-Ray, AWS SDKs for Go |   ✓    |
+| Notifications                           | SNS                                     |        |
+| Databases                               | DynamoDB                                |        |
+| Encryption                              | KMS                                     |        |
 
 What's remarkable is how little work is required to get all this. By standing on the shoulders of Go and AWS, all the undifferentiated heavy lifting is done. We just have to add our business logic functions.
 
@@ -231,8 +227,8 @@ This gives us confidence in our production environment.
 
 ## Components
 
-### Web Handler
+### Web functions
 
 ### Worker function
 
-Stay tuned...
+Stay tuned for more docs and tutorials about how it all works...

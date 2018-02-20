@@ -1,6 +1,13 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
 
+Globals:
+  Function:
+    Handler: handler
+    Runtime: go1.x
+    Timeout: 5
+    Tracing: Active
+
 Outputs:
   URL:
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ServerlessRestApiProdStage}"
@@ -22,10 +29,6 @@ Resources:
             Method: GET
             Path: /
           Type: Api
-      Handler: handler
-      Runtime: go1.x
-      Timeout: 5
-      Tracing: Active
     Type: AWS::Serverless::Function
 
   WorkerFunction:
@@ -34,13 +37,9 @@ Resources:
       Environment:
         Variables:
           BUCKET: !Ref Bucket
-      Handler: handler
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref Bucket
-      Runtime: go1.x
-      Timeout: 5
-      Tracing: Active
     Type: AWS::Serverless::Function
 
   WorkerPeriodicFunction:
@@ -55,12 +54,8 @@ Resources:
             Pattern:
               source: ["aws.events"]
           Type: CloudWatchEvent
-      Handler: handler
       Policies:
         - AmazonS3FullAccess
-      Runtime: go1.x
-      Timeout: 5
-      Tracing: Active
     Type: AWS::Serverless::Function
 
   WorkerPeriodicPermission:

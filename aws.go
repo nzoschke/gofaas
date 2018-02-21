@@ -2,6 +2,7 @@ package gofaas
 
 import (
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-xray-sdk-go/xray"
@@ -11,6 +12,13 @@ func init() {
 	xray.Configure(xray.Config{
 		LogLevel: "info",
 	})
+}
+
+// DynamoDB is an xray instrumented DynamoDB client
+func DynamoDB() *dynamodb.DynamoDB {
+	c := dynamodb.New(session.Must(session.NewSession()))
+	xray.AWS(c.Client)
+	return c
 }
 
 // S3 is an xray instrumented S3 client

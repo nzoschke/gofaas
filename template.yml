@@ -124,20 +124,20 @@ Resources:
           TABLE_NAME: !Ref UsersTable
       Events:
         Request:
-          Type: Api
           Properties:
-            Path: /users
             Method: POST
+            Path: /users
+          Type: Api
       FunctionName: !Sub ${AWS::StackName}-UserCreateFunction
       Handler: handler
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
         - Statement:
-          - Action:
-            - kms:Encrypt
-            Effect: Allow
-            Resource: !GetAtt Key.Arn
+            - Action:
+                - kms:Encrypt
+              Effect: Allow
+              Resource: !GetAtt Key.Arn
           Version: 2012-10-17
       Runtime: go1.x
     Type: AWS::Serverless::Function
@@ -151,10 +151,10 @@ Resources:
           TABLE_NAME: !Ref UsersTable
       Events:
         Request:
-          Type: Api
           Properties:
-            Path: /users/{id}
             Method: GET
+            Path: /users/{id}
+          Type: Api
       FunctionName: !Sub ${AWS::StackName}-UserReadFunction
       Handler: handler
       Policies:
@@ -174,20 +174,20 @@ Resources:
           TABLE_NAME: !Ref UsersTable
       Events:
         Request:
-          Type: Api
           Properties:
-            Path: /users/{id}
             Method: POST
+            Path: /users/{id}
+          Type: Api
       FunctionName: !Sub ${AWS::StackName}-UserUpdateFunction
       Handler: handler
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
         - Statement:
-          - Action:
-            - kms:Encrypt
-            Effect: Allow
-            Resource: !GetAtt Key.Arn
+            - Action:
+                - kms:Encrypt
+              Effect: Allow
+              Resource: !GetAtt Key.Arn
           Version: 2012-10-17
       Runtime: go1.x
     Type: AWS::Serverless::Function

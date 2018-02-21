@@ -81,6 +81,9 @@ Resources:
           Type: Api
       FunctionName: !Sub ${AWS::StackName}-DashboardFunction
       Handler: handler
+      Policies:
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref NotificationTopic
       Runtime: go1.x
     Type: AWS::Serverless::Function
 

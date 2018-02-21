@@ -84,6 +84,20 @@ Resources:
       Runtime: go1.x
     Type: AWS::Serverless::Function
 
+  Key:
+    Properties:
+      KeyPolicy:
+        Id: default
+        Statement:
+          - Action: kms:*
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Resource: '*'
+            Sid: Enable IAM User Permissions
+        Version: 2012-10-17
+    Type: AWS::KMS::Key
+
   NotificationTopic:
     Properties:
       DisplayName: Notification
@@ -100,6 +114,67 @@ Resources:
           - !Ref AWS::NoValue
       TopicName: Notification
     Type: AWS::SNS::Topic
+
+  UserCreateFunction:
+    Properties:
+      CodeUri: ./handlers/user-create/handler.zip
+      Environment:
+        Variables:
+          KEY_ID: !Ref Key
+          TABLE_NAME: !Ref UsersTable
+      Events:
+        Request:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: POST
+      FunctionName: !Sub ${AWS::StackName}-UserCreateFunction
+      Handler: handler
+      Runtime: go1.x
+    Type: AWS::Serverless::Function
+
+  UserReadFunction:
+    Properties:
+      CodeUri: ./handlers/user-read/handler.zip
+      Environment:
+        Variables:
+          KEY_ID: !Ref Key
+          TABLE_NAME: !Ref UsersTable
+      Events:
+        Request:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: GET
+      FunctionName: !Sub ${AWS::StackName}-UserReadFunction
+      Handler: handler
+      Runtime: go1.x
+    Type: AWS::Serverless::Function
+
+  UserUpdateFunction:
+    Properties:
+      CodeUri: ./handlers/user-update/handler.zip
+      Environment:
+        Variables:
+          KEY_ID: !Ref Key
+          TABLE_NAME: !Ref UsersTable
+      Events:
+        Request:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: POST
+      FunctionName: !Sub ${AWS::StackName}-UserUpdateFunction
+      Handler: handler
+      Runtime: go1.x
+    Type: AWS::Serverless::Function
+
+  UsersTable:
+    Properties:
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+    Type: AWS::Serverless::SimpleTable
 
   WorkerFunction:
     Properties:

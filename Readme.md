@@ -16,9 +16,9 @@ It demonstrates:
 | --------------------------------------- |-----------------------------------------|-----------------------------------------------------|
 | HTTP functions                          | Lambda, API Gateway                     | [code](dashboard.go) [docs](docs/http-functions.md) |
 | Worker functions (one-off and periodic) | Lambda, Invoke API, CloudWatch Events   | [code](worker.go)                                   |
-| Packaging, development and deployment   | make, go, aws-sam-local, CloudFormation | [code](Makefile)                                    |
-| Per-function environment and policies   | Lambda, IAM                             | [code](template.yml)                                |
-| Custom domains                          | CloudFront, ACM                         | [code](template.yml)                                |
+| Packaging, development and deployment   | make, go, aws-sam-local, CloudFormation | [config](Makefile)                                  |
+| Per-function environment and policies   | Lambda, IAM                             | [config](template.yml)                              |
+| Custom domains                          | CloudFront, ACM                         | [config](template.yml)                              |
 | Logs, Tracing                           | CloudWatch Logs, X-Ray, AWS SDKs for Go | [code](aws.go)                                      |
 | Notifications                           | SNS                                     | [code](notify.go)                                   |
 | Databases                               | DynamoDB                                | wip                                                 |

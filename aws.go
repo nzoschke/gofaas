@@ -9,7 +9,7 @@ import (
 
 func init() {
 	xray.Configure(xray.Config{
-		LogLevel: "trace",
+		LogLevel: "info",
 	})
 }
 

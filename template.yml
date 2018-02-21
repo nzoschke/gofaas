@@ -79,6 +79,9 @@ Resources:
             Method: GET
             Path: /
           Type: Api
+      FunctionName: !Sub ${AWS::StackName}-DashboardFunction
+      Handler: handler
+      Runtime: go1.x
     Type: AWS::Serverless::Function
 
   NotificationTopic:
@@ -104,9 +107,12 @@ Resources:
       Environment:
         Variables:
           BUCKET: !Ref Bucket
+      FunctionName: !Sub ${AWS::StackName}-WorkerFunction
+      Handler: handler
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref Bucket
+      Runtime: go1.x
     Type: AWS::Serverless::Function
 
   WorkerPeriodicFunction:
@@ -121,8 +127,11 @@ Resources:
             Pattern:
               source: ["aws.events"]
           Type: CloudWatchEvent
+      FunctionName: !Sub ${AWS::StackName}-WorkerPeriodicFunction
+      Handler: handler
       Policies:
         - AmazonS3FullAccess
+      Runtime: go1.x
     Type: AWS::Serverless::Function
 
   WorkerPeriodicPermission:

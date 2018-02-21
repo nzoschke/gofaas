@@ -1,48 +1,41 @@
-# GoFAAS
+# gofaas - Go Functions-as-a-Service
 
-Demo app that uses idiomatic Go and AWS.
+A project that demonstrates idiomatic Go with AWS Lambda and related "serverless" services.
 
 ## Motivation
 
-I'm here to share a secret: Go in AWS Lambda is one of the best ways to write and run code.
+Functions-as-a-Service (FaaS) like AWS Lambda are one of the latest advances in cloud Infrastructure-as-a-Service (IaaS). Go is particularly well-suited to run in Lambda due to its speed, size and cross-compiler. Check out the [Intro to Go Functions-as-a-Service and Lambda](docs/intro-go-faas.md) doc for more explaination.
 
-Brandur recently wrote a great post: [Speed and Stability: Why Go is a Great Fit for Lambda](https://brandur.org/go-lambda). Having used Go in Lambda for years, I couldn't agree more. Go in Lambda has resulted in systems that are the most cheap, fast, reliable, operational, and secure I have ever encountered.
+For a long time, Go in Lambda was only possible through hacks -- execution shims, 3rd party frameworks and middleware, and no dev/prod parity. But in January 2018, [AWS launched official Go support for Lambda](https://aws.amazon.com/blogs/compute/announcing-go-support-for-aws-lambda/) and [Go released 1.10](https://golang.org/doc/go1.10) paving the clearest path yet for us Gophers.
 
-Up until recently, this was only possible through hacks -- execution shims, heavy middleware, and no dev/prod parity.
-
-That's because Go and AWS Lambda landscape is evolving very quickly. Offical Go support for Lambda was launched only a month ago. Go 1.10 is hot off the press, and `dep` is under active development. The AWS Serverless Application Model (SAM) is in beta and hasn't got much attention yet.
-
-However it's clear that these tools and services are a rock solid foundation for building systems upon.
-
-This project demonstrates such a foundation. You can clone and deploy it with a few commands to get a feel for the stack. Or you can fork and rework it to turn it into your own web app.
+This project demonstrates a simple and clean foundation for Go in Lambda. You can clone and deploy it with a few commands to get a feel for the stack. Or you can fork and rework it to turn it into your own web application.
 
 It demonstrates:
 
-| Component                               | Via                                     | Status |
-| --------------------------------------- |-----------------------------------------|--------|
-| Web functions                           | Lambda, API Gateway                     |   ✓    |
-| Worker functions (one-off and periodic) | Lambda, Invoke API, CloudWatch Events   |   ✓    |
-| Packaging, development and deployment   | make, go, sam, CloudFormation (SAM)     |   ✓    |
-| Per-function environment and policies   | Lambda, IAM                             |        |
-| Custom domains                          | CloudFront, ACM                         |   ✓    |
-| Logs, Tracing                           | CloudWatch Logs, X-Ray, AWS SDKs for Go |   ✓    |
-| Notifications                           | SNS                                     |   ✓    |
-| Databases                               | DynamoDB                                |        |
-| Encryption                              | KMS                                     |        |
+| Component                               | Via                                     |  Links                                              |
+| --------------------------------------- |-----------------------------------------|-----------------------------------------------------|
+| HTTP functions                          | Lambda, API Gateway                     | [code](dashboard.go) [docs](docs/http-functions.md) |
+| Worker functions (one-off and periodic) | Lambda, Invoke API, CloudWatch Events   | [code](worker.go)                                   |
+| Packaging, development and deployment   | make, go, aws-sam-local, CloudFormation | [code](Makefile)                                    |
+| Per-function environment and policies   | Lambda, IAM                             | [code](template.yml)                                |
+| Custom domains                          | CloudFront, ACM                         | [code](template.yml)                                |
+| Logs, Tracing                           | CloudWatch Logs, X-Ray, AWS SDKs for Go | [code](aws.go)                                      |
+| Notifications                           | SNS                                     | [code](notify.go)                                   |
+| Databases                               | DynamoDB                                | wip                                                 |
+| Encryption                              | KMS                                     | wip                                                 |
 
-What's remarkable is how little work is required to get all this. By standing on the shoulders of Go and AWS, all the undifferentiated heavy lifting is done. We just have to add our business logic functions.
+What's remarkable is how little work is required to get all functionality for our app. We don't need a framework, Platform-as-a-Service, or even any 3rd party Software-as-a-Service. And yes, we don't need servers. By standing on the shoulders of Go and AWS, all the undifferentiated heavy lifting is handled.
 
-We don't need a framework or a Platform-as-a-Service or even any 3rd party Software-as-a-Service to accomplish this. We need Go, an AWS account and a config file.
+We just need an [AWS Serverless Application Model (SAM)](https://github.com/awslabs/serverless-application-model) [config file](template.yml), and we can focus entirely on writing our Go functions.
 
 ## Quick Start
 
-This project uses [Go 1.10](https://golang.org/), [dep](https://github.com/golang/dep), [AWS CLI](https://aws.amazon.com/cli/), [AWS SAM Local](https://docs.aws.amazon.com/lambda/latest/dg/test-sam-local.html) and [Docker for Mac](https://www.docker.com/docker-mac).
+This project uses [Go 1.10](https://golang.org/), [dep](https://github.com/golang/dep), [AWS CLI](https://aws.amazon.com/cli/), [AWS SAM Local](https://docs.aws.amazon.com/lambda/latest/dg/test-sam-local.html) and [Docker CE](https://www.docker.com/community-edition).
 
 ```console
 ## install tools
 
-$ brew install aws-cli
-$ brew install go
+$ brew install aws-cli go
 $ go get -u github.com/awslabs/aws-sam-local 
 $ go get -u github.com/golang/dep/cmd/dep
 ```
@@ -154,7 +147,7 @@ Mounting handler (go1.x) at http://127.0.0.1:3000/ [GET]
 ## request the app
 
 $ curl http://localhost:3000
-<html><body><h1>GoFAAS Dashboard</h1></body></html>
+<html><body><h1>gofaas dashboard</h1></body></html>
 
 ## invoke the worker
 
@@ -162,44 +155,7 @@ $ echo '{}' | aws-sam-local local invoke WorkerFunction
 2018/02/17 20:00:58 Worker Event: {SourceIP: TimeEnd:0001-01-01 00:00:00 +0000 UTC TimeStart:0001-01-01 00:00:00 +0000 UTC}
 ```
 
-<details>
-<summary>We may want to review all SAM logs to better understand function invocation...</summary>
-&nbsp;
-
-```console
-$ make dev
-
-aws-sam-local local start-api -n env.json
-2018/02/16 08:24:33 Connected to Docker 1.35
-2018/02/16 08:24:33 Fetching lambci/lambda:go1.x image for go1.x runtime...
-go1.x: Pulling from lambci/lambda
-Digest: sha256:d77adf847c45dcb5fae3cd93283447fad3f3d51ead024aed0c866a407a206e7c
-Status: Image is up to date for lambci/lambda:go1.x
-
-Mounting handler (go1.x) at http://127.0.0.1:3000/ [GET]
-
-You can now browse to the above endpoints to invoke your functions.
-You do not need to restart/reload SAM CLI while working on your functions,
-changes will be reflected instantly/automatically. You only need to restart
-SAM CLI if you update your AWS SAM template.
-
-2018/02/16 08:24:37 Invoking handler (go1.x)
-2018/02/16 08:24:37 Decompressing /Users/noah/go/src/github.com/nzoschke/gofaas/handlers/dashboard/handler.zip
-2018/02/16 08:24:37 Mounting /private/var/folders/px/fd8j3qvn13gcxw9_nw25pphw0000gn/T/aws-sam-local-1518798277763101448 as /var/task:ro inside runtime container
-START RequestId: 0619a836-ce3d-1819-8edc-2005395b83a6 Version: $LATEST
-END RequestId: 0619a836-ce3d-1819-8edc-2005395b83a6
-REPORT RequestId: 0619a836-ce3d-1819-8edc-2005395b83a6	Duration: 1.56 ms	Billed Duration: 100 ms	Memory Size: 128 MB	Max Memory Used: 5 MB
-
-2018/02/17 12:00:37 Reading invoke payload from stdin (you can also pass it from file with --event)
-2018/02/17 12:00:37 Invoking handler (go1.x)
-2018/02/17 12:00:37 Decompressing /Users/noah/go/src/github.com/nzoschke/gofaas/handlers/worker/handler.zip
-2018/02/17 12:00:37 Mounting /private/var/folders/px/fd8j3qvn13gcxw9_nw25pphw0000gn/T/aws-sam-local-1518897637127351189 as /var/task:ro inside runtime container
-START RequestId: 996f94f4-2fbe-16af-f33a-5e70e0199f35 Version: $LATEST
-2018/02/17 20:00:58 Worker Event: {SourceIP: TimeEnd:0001-01-01 00:00:00 +0000 UTC TimeStart:0001-01-01 00:00:00 +0000 UTC}
-END RequestId: 996f94f4-2fbe-16af-f33a-5e70e0199f35
-REPORT RequestId: 996f94f4-2fbe-16af-f33a-5e70e0199f35	Duration: 486.90 ms	Billed Duration: 500 ms	Memory Size: 128 MB	Max Memory Used: 13 MB	
-```
-</details>
+Note: if you see `No AWS credentials found. Missing credentials may lead to slow startup...`, review `aws configure list` and your `AWS_PROFILE` env var.
 
 This gives us confidence in our development environment.
 
@@ -216,19 +172,34 @@ Waiting for changeset to be created
 Waiting for stack create/update to complete
 Successfully created/updated stack - gofaas
 ApiUrl	https://x19vpdk568.execute-api.us-east-1.amazonaws.com/Prod
+```
 
+```console
 ## request the app
 
 $ curl https://x19vpdk568.execute-api.us-east-1.amazonaws.com/Prod
-<html><body><h1>GoFAAS Dashboard</h1></body></html>
+<html><body><h1>gofaas dashboard</h1></body></html>
+
+## invoke the worker
+$ aws lambda invoke --function-name gofaas-WorkerFunction --log-type Tail --output text --query 'LogResult' out.log | base64 -D
+START RequestId: 0bb47628-1718-11e8-ad73-c58e72b8826c Version: $LATEST
+2018/02/21 15:01:07 Worker Event: {SourceIP: TimeEnd:0001-01-01 00:00:00 +0000 UTC TimeStart:0001-01-01 00:00:00 +0000 UTC}
+END RequestId: 0bb47628-1718-11e8-ad73-c58e72b8826c
+REPORT RequestId: 0bb47628-1718-11e8-ad73-c58e72b8826c	Duration: 11.11 ms	Billed Duration: 100 ms 	Memory Size: 128 MB	Max Memory Used: 41 MB
 ```
+
+Look at that speedy 11 ms duration! Go is faster than the minimum billing duration of 100 ms.
 
 This gives us confidence in our production environment.
 
-## Components
+## Docs
 
-### Web functions
+Check out [the gofaas docs folder](docs/) where each component is explained in more details.
 
-### Worker function
+## Contributing
 
-Stay tuned for more docs and tutorials about how it all works...
+Find a bug or see a way to improve the project? [Open an issue](https://github.com/nzoschke/gofaas/issues).
+
+## License
+
+Apache 2.0 © 2018 Noah Zoschke

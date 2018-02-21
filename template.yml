@@ -136,6 +136,8 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref NotificationTopic
         - Statement:
             - Action:
                 - kms:Encrypt
@@ -165,6 +167,8 @@ Resources:
             TableName: !Ref UsersTable
         - KMSDecryptPolicy:
             KeyId: !Ref Key
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref NotificationTopic
       Runtime: go1.x
     Type: AWS::Serverless::Function
 
@@ -186,6 +190,8 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref NotificationTopic
         - Statement:
             - Action:
                 - kms:Encrypt
@@ -213,6 +219,8 @@ Resources:
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref Bucket
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref NotificationTopic
       Runtime: go1.x
     Type: AWS::Serverless::Function
 
@@ -232,6 +240,8 @@ Resources:
       Handler: handler
       Policies:
         - AmazonS3FullAccess
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref NotificationTopic
       Runtime: go1.x
     Type: AWS::Serverless::Function
 

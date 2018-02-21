@@ -239,7 +239,12 @@ Resources:
       FunctionName: !Sub ${AWS::StackName}-WorkerPeriodicFunction
       Handler: handler
       Policies:
-        - AmazonS3FullAccess
+        - Statement:
+            - Action:
+                - s3:DeleteObject
+                - s3:ListObjects
+              Effect: Allow
+              Resource: !Sub "arn:aws:s3:::${Bucket}/*"
         - SNSPublishMessagePolicy:
             TopicName: !Ref NotificationTopic
       Runtime: go1.x

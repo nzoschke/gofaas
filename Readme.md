@@ -30,7 +30,7 @@ We don't need a framework, Platform-as-a-Service or even any 3rd party Software-
 
 ## Quick Start
 
-This project uses [Go 1.10](https://golang.org/), [dep](https://github.com/golang/dep), [AWS CLI](https://aws.amazon.com/cli/), [AWS SAM Local](https://docs.aws.amazon.com/lambda/latest/dg/test-sam-local.html) and [Docker for Mac](https://www.docker.com/docker-mac).
+This project uses [Go 1.10](https://golang.org/), [dep](https://github.com/golang/dep), [AWS CLI](https://aws.amazon.com/cli/), [AWS SAM Local](https://docs.aws.amazon.com/lambda/latest/dg/test-sam-local.html) and [Docker CE](https://www.docker.com/community-edition).
 
 ```console
 ## install tools
@@ -147,7 +147,7 @@ Mounting handler (go1.x) at http://127.0.0.1:3000/ [GET]
 ## request the app
 
 $ curl http://localhost:3000
-<html><body><h1>GoFAAS Dashboard</h1></body></html>
+<html><body><h1>gofaas dashboard</h1></body></html>
 
 ## invoke the worker
 
@@ -155,44 +155,7 @@ $ echo '{}' | aws-sam-local local invoke WorkerFunction
 2018/02/17 20:00:58 Worker Event: {SourceIP: TimeEnd:0001-01-01 00:00:00 +0000 UTC TimeStart:0001-01-01 00:00:00 +0000 UTC}
 ```
 
-<details>
-<summary>We may want to review all SAM logs to better understand function invocation...</summary>
-&nbsp;
-
-```console
-$ make dev
-
-aws-sam-local local start-api -n env.json
-2018/02/16 08:24:33 Connected to Docker 1.35
-2018/02/16 08:24:33 Fetching lambci/lambda:go1.x image for go1.x runtime...
-go1.x: Pulling from lambci/lambda
-Digest: sha256:d77adf847c45dcb5fae3cd93283447fad3f3d51ead024aed0c866a407a206e7c
-Status: Image is up to date for lambci/lambda:go1.x
-
-Mounting handler (go1.x) at http://127.0.0.1:3000/ [GET]
-
-You can now browse to the above endpoints to invoke your functions.
-You do not need to restart/reload SAM CLI while working on your functions,
-changes will be reflected instantly/automatically. You only need to restart
-SAM CLI if you update your AWS SAM template.
-
-2018/02/16 08:24:37 Invoking handler (go1.x)
-2018/02/16 08:24:37 Decompressing /Users/noah/go/src/github.com/nzoschke/gofaas/handlers/dashboard/handler.zip
-2018/02/16 08:24:37 Mounting /private/var/folders/px/fd8j3qvn13gcxw9_nw25pphw0000gn/T/aws-sam-local-1518798277763101448 as /var/task:ro inside runtime container
-START RequestId: 0619a836-ce3d-1819-8edc-2005395b83a6 Version: $LATEST
-END RequestId: 0619a836-ce3d-1819-8edc-2005395b83a6
-REPORT RequestId: 0619a836-ce3d-1819-8edc-2005395b83a6	Duration: 1.56 ms	Billed Duration: 100 ms	Memory Size: 128 MB	Max Memory Used: 5 MB
-
-2018/02/17 12:00:37 Reading invoke payload from stdin (you can also pass it from file with --event)
-2018/02/17 12:00:37 Invoking handler (go1.x)
-2018/02/17 12:00:37 Decompressing /Users/noah/go/src/github.com/nzoschke/gofaas/handlers/worker/handler.zip
-2018/02/17 12:00:37 Mounting /private/var/folders/px/fd8j3qvn13gcxw9_nw25pphw0000gn/T/aws-sam-local-1518897637127351189 as /var/task:ro inside runtime container
-START RequestId: 996f94f4-2fbe-16af-f33a-5e70e0199f35 Version: $LATEST
-2018/02/17 20:00:58 Worker Event: {SourceIP: TimeEnd:0001-01-01 00:00:00 +0000 UTC TimeStart:0001-01-01 00:00:00 +0000 UTC}
-END RequestId: 996f94f4-2fbe-16af-f33a-5e70e0199f35
-REPORT RequestId: 996f94f4-2fbe-16af-f33a-5e70e0199f35	Duration: 486.90 ms	Billed Duration: 500 ms	Memory Size: 128 MB	Max Memory Used: 13 MB	
-```
-</details>
+Note: if you see `No AWS credentials found. Missing credentials may lead to slow startup...`, review `aws configure list` and your `AWS_PROFILE` env var.
 
 This gives us confidence in our development environment.
 
@@ -209,12 +172,23 @@ Waiting for changeset to be created
 Waiting for stack create/update to complete
 Successfully created/updated stack - gofaas
 ApiUrl	https://x19vpdk568.execute-api.us-east-1.amazonaws.com/Prod
+```
 
+```console
 ## request the app
 
 $ curl https://x19vpdk568.execute-api.us-east-1.amazonaws.com/Prod
-<html><body><h1>GoFAAS Dashboard</h1></body></html>
+<html><body><h1>gofaas dashboard</h1></body></html>
+
+## invoke the worker
+$ aws lambda invoke --function-name gofaas-WorkerFunction --log-type Tail --output text --query 'LogResult' out.log | base64 -D
+START RequestId: 0bb47628-1718-11e8-ad73-c58e72b8826c Version: $LATEST
+2018/02/21 15:01:07 Worker Event: {SourceIP: TimeEnd:0001-01-01 00:00:00 +0000 UTC TimeStart:0001-01-01 00:00:00 +0000 UTC}
+END RequestId: 0bb47628-1718-11e8-ad73-c58e72b8826c
+REPORT RequestId: 0bb47628-1718-11e8-ad73-c58e72b8826c	Duration: 11.11 ms	Billed Duration: 100 ms 	Memory Size: 128 MB	Max Memory Used: 41 MB
 ```
+
+Look at that speedy 11 ms duration! Go is faster than the minimum billing duration of 100 ms.
 
 This gives us confidence in our production environment.
 

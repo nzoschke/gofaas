@@ -182,7 +182,7 @@ Resources:
       Events:
         Request:
           Properties:
-            Method: POST
+            Method: PUT
             Path: /users/{id}
           Type: Api
       FunctionName: !Sub ${AWS::StackName}-UserUpdateFunction

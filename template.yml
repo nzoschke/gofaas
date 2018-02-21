@@ -130,6 +130,15 @@ Resources:
             Method: POST
       FunctionName: !Sub ${AWS::StackName}-UserCreateFunction
       Handler: handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - Statement:
+          - Action:
+            - kms:Encrypt
+            Effect: Allow
+            Resource: !GetAtt Key.Arn
+          Version: 2012-10-17
       Runtime: go1.x
     Type: AWS::Serverless::Function
 
@@ -148,6 +157,11 @@ Resources:
             Method: GET
       FunctionName: !Sub ${AWS::StackName}-UserReadFunction
       Handler: handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UsersTable
+        - KMSDecryptPolicy:
+            KeyId: !Ref Key
       Runtime: go1.x
     Type: AWS::Serverless::Function
 
@@ -166,6 +180,15 @@ Resources:
             Method: POST
       FunctionName: !Sub ${AWS::StackName}-UserUpdateFunction
       Handler: handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - Statement:
+          - Action:
+            - kms:Encrypt
+            Effect: Allow
+            Resource: !GetAtt Key.Arn
+          Version: 2012-10-17
       Runtime: go1.x
     Type: AWS::Serverless::Function
 

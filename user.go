@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
@@ -30,15 +31,22 @@ func UserCreate(ctx context.Context, e events.APIGatewayProxyRequest) (events.AP
 	}
 
 	u.ID = uuid.NewV4().String()
-	u.Token = uuid.NewV4().String()
 
-	_, err := DynamoDB().PutItemWithContext(ctx, &dynamodb.PutItemInput{
+	out, err := KMS().EncryptWithContext(ctx, &kms.EncryptInput{
+		Plaintext: []byte(uuid.NewV4().String()),
+		KeyId:     aws.String(os.Getenv("KEY_ID")),
+	})
+	if err != nil {
+		return RE, errors.WithStack(err)
+	}
+
+	_, err = DynamoDB().PutItemWithContext(ctx, &dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
 			"id": &dynamodb.AttributeValue{
 				S: aws.String(u.ID),
 			},
 			"token": &dynamodb.AttributeValue{
-				S: aws.String(u.Token),
+				B: out.CiphertextBlob,
 			},
 			"username": &dynamodb.AttributeValue{
 				S: aws.String(u.Username),
@@ -85,8 +93,15 @@ func UserRead(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIG
 	}
 
 	if e.QueryStringParameters["token"] == "true" {
+		out, err := KMS().DecryptWithContext(ctx, &kms.DecryptInput{
+			CiphertextBlob: out.Item["token"].B,
+		})
+		if err != nil {
+			return RE, errors.WithStack(err)
+		}
+
 		// decrypt token
-		u.Token = *out.Item["token"].S
+		u.Token = string(out.Plaintext)
 	}
 
 	b, err := json.MarshalIndent(u, "", "  ")

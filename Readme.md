@@ -1,20 +1,14 @@
-# GoFAAS
+# gofaas - Go Functions-as-a-Service
 
-Demo app that uses idiomatic Go and AWS.
+A project that demonstrates idiomatic Go with AWS Lambda and related "serverless" services.
 
 ## Motivation
 
-I'm here to share a secret: Go in AWS Lambda is one of the best ways to write and run code.
+Functions-as-a-Service (FaaS) like AWS Lambda are one of the latest advances in cloud Infrastructure-as-a-Service (IaaS). Go is particularly well-suited to run in Lambda due to its speed, size and cross-compiler. Check out the [Intro to Go Functions-as-a-Service and Lambda](docs/intro-go-faas.md) doc for more explaination.
 
-Brandur recently wrote a great post: [Speed and Stability: Why Go is a Great Fit for Lambda](https://brandur.org/go-lambda). Having used Go in Lambda for years, I couldn't agree more. Go in Lambda has resulted in systems that are the most cheap, fast, reliable, operational, and secure I have ever encountered.
+For a long time, Go in Lambda was only possible through hacks -- execution shims, 3rd party frameworks and middleware, and no dev/prod parity. But in January 2018, [AWS launched official Go support for Lambda](https://aws.amazon.com/blogs/compute/announcing-go-support-for-aws-lambda/) and [Go released 1.10](https://golang.org/doc/go1.10) paving the clearest path yet for us Gophers.
 
-Up until recently, this was only possible through hacks -- execution shims, heavy middleware, and no dev/prod parity.
-
-That's because Go and AWS Lambda landscape is evolving very quickly. Offical Go support for Lambda was launched only a month ago. Go 1.10 is hot off the press, and `dep` is under active development. The AWS Serverless Application Model (SAM) is in beta and hasn't got much attention yet.
-
-However it's clear that these tools and services are a rock solid foundation for building systems upon.
-
-This project demonstrates such a foundation. You can clone and deploy it with a few commands to get a feel for the stack. Or you can fork and rework it to turn it into your own web app.
+This project demonstrates a simple and clean foundation for Go in Lambda. You can clone and deploy it with a few commands to get a feel for the stack. Or you can fork and rework it to turn it into your own web application.
 
 It demonstrates:
 
@@ -32,7 +26,7 @@ It demonstrates:
 
 What's remarkable is how little work is required to get all this. By standing on the shoulders of Go and AWS, all the undifferentiated heavy lifting is done. We just have to add our business logic functions.
 
-We don't need a framework or a Platform-as-a-Service or even any 3rd party Software-as-a-Service to accomplish this. We need Go, an AWS account and a config file.
+We don't need a framework, Platform-as-a-Service or even any 3rd party Software-as-a-Service to accomplish this. We need Go, an AWS account and a config file [like the one demonstrated here](template.yml).
 
 ## Quick Start
 
@@ -41,8 +35,7 @@ This project uses [Go 1.10](https://golang.org/), [dep](https://github.com/golan
 ```console
 ## install tools
 
-$ brew install aws-cli
-$ brew install go
+$ brew install aws-cli go
 $ go get -u github.com/awslabs/aws-sam-local 
 $ go get -u github.com/golang/dep/cmd/dep
 ```
@@ -225,10 +218,14 @@ $ curl https://x19vpdk568.execute-api.us-east-1.amazonaws.com/Prod
 
 This gives us confidence in our production environment.
 
-## Components
+## Docs
 
-### Web functions
+Check out [the gofaas docs folder](docs/) where each component is explained in more details.
 
-### Worker function
+## Contributing
 
-Stay tuned for more docs and tutorials about how it all works...
+Find a bug or see a way to improve the project? [Open an issue](https://github.com/nzoschke/gofaas/issues).
+
+## License
+
+Apache 2.0 © 2018 Noah Zoschke

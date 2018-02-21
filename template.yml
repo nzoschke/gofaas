@@ -3,9 +3,14 @@ AWSTemplateFormatVersion: '2010-09-09'
 
 Conditions:
   ApiDomainNameSpecified: !Not [!Equals [!Ref ApiDomainName, ""]]
+  NotificationEmailSpecified: !Not [!Equals [!Ref NotificationEmail, ""]]
+  NotificationNumberSpecified: !Not [!Equals [!Ref NotificationNumber, ""]]
 
 Globals:
   Function:
+    Environment:
+      Variables:
+        NOTIFICATION_TOPIC: !Ref NotificationTopic
     Handler: handler
     Runtime: go1.x
     Timeout: 5
@@ -25,6 +30,14 @@ Outputs:
 
 Parameters:
   ApiDomainName:
+    Default: ""
+    Type: String
+
+  NotificationEmail:
+    Default: ""
+    Type: String
+
+  NotificationNumber:
     Default: ""
     Type: String
 
@@ -67,6 +80,23 @@ Resources:
             Path: /
           Type: Api
     Type: AWS::Serverless::Function
+
+  NotificationTopic:
+    Properties:
+      DisplayName: Notification
+      Subscription:
+        - !If
+          - NotificationEmailSpecified
+          - Endpoint: !Ref NotificationEmail
+            Protocol: email
+          - !Ref AWS::NoValue
+        - !If
+          - NotificationNumberSpecified
+          - Endpoint: !Ref NotificationNumber
+            Protocol: sms
+          - !Ref AWS::NoValue
+      TopicName: Notification
+    Type: AWS::SNS::Topic
 
   WorkerFunction:
     Properties:

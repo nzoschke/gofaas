@@ -1,4 +1,4 @@
-export AWS_DEFAULT_REGION ?= us-west-2
+export AWS_DEFAULT_REGION ?= us-east-1
 APP = gofaas
 PKG = github.com/nzoschke/$(APP)
 
@@ -10,7 +10,7 @@ clean:
 	rm -f ./handlers/worker-periodic/{handler,handler.zip}
 
 deploy: BUCKET = pkgs-$(shell aws sts get-caller-identity --output text --query 'Account')-$(AWS_DEFAULT_REGION)
-deploy: PARAMS ?= "="
+deploy: PARAMS ?= =
 deploy: handlers
 	@aws s3api head-bucket --bucket $(BUCKET) || aws s3 mb s3://$(BUCKET) --region $(AWS_DEFAULT_REGION)
 	aws cloudformation package --output-template-file out.yml --s3-bucket $(BUCKET) --template-file template.yml

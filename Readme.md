@@ -26,7 +26,7 @@ It demonstrates:
 | Per-function environment and policies   | Lambda, IAM                             |        |
 | Custom domains                          | CloudFront, ACM                         |   ✓    |
 | Logs, Tracing                           | CloudWatch Logs, X-Ray, AWS SDKs for Go |   ✓    |
-| Notifications                           | SNS                                     |        |
+| Notifications                           | SNS                                     |   ✓    |
 | Databases                               | DynamoDB                                |        |
 | Encryption                              | KMS                                     |        |
 

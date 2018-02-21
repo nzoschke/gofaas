@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-	lambda.Start(gofaas.Worker)
+	lambda.Start(gofaas.NotifyWorker(gofaas.Worker))
 }

@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-	lambda.Start(gofaas.WorkerPeriodic)
+	lambda.Start(gofaas.NotifyCloudWatch(gofaas.WorkerPeriodic))
 }

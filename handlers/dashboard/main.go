@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-	lambda.Start(gofaas.Dashboard)
+	lambda.Start(gofaas.NotifyAPIGateway(gofaas.Dashboard))
 }

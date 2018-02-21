@@ -12,21 +12,21 @@ This project demonstrates a simple and clean foundation for Go in Lambda. You ca
 
 It demonstrates:
 
-| Component                               | Via                                     | Status |
-| --------------------------------------- |-----------------------------------------|--------|
-| Web functions                           | Lambda, API Gateway                     |   ✓    |
-| Worker functions (one-off and periodic) | Lambda, Invoke API, CloudWatch Events   |   ✓    |
-| Packaging, development and deployment   | make, go, sam, CloudFormation (SAM)     |   ✓    |
-| Per-function environment and policies   | Lambda, IAM                             |        |
-| Custom domains                          | CloudFront, ACM                         |   ✓    |
-| Logs, Tracing                           | CloudWatch Logs, X-Ray, AWS SDKs for Go |   ✓    |
-| Notifications                           | SNS                                     |   ✓    |
-| Databases                               | DynamoDB                                |        |
-| Encryption                              | KMS                                     |        |
+| Component                               | Via                                     |  Links                                              |
+| --------------------------------------- |-----------------------------------------|-----------------------------------------------------|
+| HTTP functions                          | Lambda, API Gateway                     | [code](dashboard.go) [docs](docs/http-functions.md) |
+| Worker functions (one-off and periodic) | Lambda, Invoke API, CloudWatch Events   | [code](worker.go)                                   |
+| Packaging, development and deployment   | make, go, aws-sam-local, CloudFormation | [code](Makefile)                                    |
+| Per-function environment and policies   | Lambda, IAM                             | [code](template.yml)                                |
+| Custom domains                          | CloudFront, ACM                         | [code](template.yml)                                |
+| Logs, Tracing                           | CloudWatch Logs, X-Ray, AWS SDKs for Go | [code](aws.go)                                      |
+| Notifications                           | SNS                                     | [code](notify.go)                                   |
+| Databases                               | DynamoDB                                | wip                                                 |
+| Encryption                              | KMS                                     | wip                                                 |
 
-What's remarkable is how little work is required to get all this. By standing on the shoulders of Go and AWS, all the undifferentiated heavy lifting is done. We just have to add our business logic functions.
+What's remarkable is how little work is required to get all functionality for our app. We don't need a framework, Platform-as-a-Service, or even any 3rd party Software-as-a-Service. And yes, we don't need servers. By standing on the shoulders of Go and AWS, all the undifferentiated heavy lifting is handled.
 
-We don't need a framework, Platform-as-a-Service or even any 3rd party Software-as-a-Service to accomplish this. We need Go, an AWS account and a config file [like the one demonstrated here](template.yml).
+We just need an [AWS Serverless Application Model (SAM)](https://github.com/awslabs/serverless-application-model) [config file](template.yml), and we can focus entirely on writing our Go functions.
 
 ## Quick Start
 

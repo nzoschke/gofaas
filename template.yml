@@ -147,6 +147,29 @@ Resources:
       Runtime: go1.x
     Type: AWS::Serverless::Function
 
+  UserDeleteFunction:
+    Properties:
+      CodeUri: ./handlers/user-delete/handler.zip
+      Environment:
+        Variables:
+          KEY_ID: !Ref Key
+          TABLE_NAME: !Ref UsersTable
+      Events:
+        Request:
+          Properties:
+            Method: DELETE
+            Path: /users/{id}
+          Type: Api
+      FunctionName: !Sub ${AWS::StackName}-UserDeleteFunction
+      Handler: handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref NotificationTopic
+      Runtime: go1.x
+    Type: AWS::Serverless::Function
+
   UserReadFunction:
     Properties:
       CodeUri: ./handlers/user-read/handler.zip

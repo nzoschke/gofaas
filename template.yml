@@ -81,8 +81,25 @@ Resources:
           Type: Api
       FunctionName: !Sub ${AWS::StackName}-DashboardFunction
       Handler: handler
+      Policies:
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref NotificationTopic
       Runtime: go1.x
     Type: AWS::Serverless::Function
+
+  Key:
+    Properties:
+      KeyPolicy:
+        Id: default
+        Statement:
+          - Action: kms:*
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Resource: '*'
+            Sid: Enable IAM User Permissions
+        Version: 2012-10-17
+    Type: AWS::KMS::Key
 
   NotificationTopic:
     Properties:
@@ -101,6 +118,119 @@ Resources:
       TopicName: Notification
     Type: AWS::SNS::Topic
 
+  UserCreateFunction:
+    Properties:
+      CodeUri: ./handlers/user-create/handler.zip
+      Environment:
+        Variables:
+          KEY_ID: !Ref Key
+          TABLE_NAME: !Ref UsersTable
+      Events:
+        Request:
+          Properties:
+            Method: POST
+            Path: /users
+          Type: Api
+      FunctionName: !Sub ${AWS::StackName}-UserCreateFunction
+      Handler: handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref NotificationTopic
+        - Statement:
+            - Action:
+                - kms:Encrypt
+              Effect: Allow
+              Resource: !GetAtt Key.Arn
+          Version: 2012-10-17
+      Runtime: go1.x
+    Type: AWS::Serverless::Function
+
+  UserDeleteFunction:
+    Properties:
+      CodeUri: ./handlers/user-delete/handler.zip
+      Environment:
+        Variables:
+          KEY_ID: !Ref Key
+          TABLE_NAME: !Ref UsersTable
+      Events:
+        Request:
+          Properties:
+            Method: DELETE
+            Path: /users/{id}
+          Type: Api
+      FunctionName: !Sub ${AWS::StackName}-UserDeleteFunction
+      Handler: handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref NotificationTopic
+      Runtime: go1.x
+    Type: AWS::Serverless::Function
+
+  UserReadFunction:
+    Properties:
+      CodeUri: ./handlers/user-read/handler.zip
+      Environment:
+        Variables:
+          KEY_ID: !Ref Key
+          TABLE_NAME: !Ref UsersTable
+      Events:
+        Request:
+          Properties:
+            Method: GET
+            Path: /users/{id}
+          Type: Api
+      FunctionName: !Sub ${AWS::StackName}-UserReadFunction
+      Handler: handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UsersTable
+        - KMSDecryptPolicy:
+            KeyId: !Ref Key
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref NotificationTopic
+      Runtime: go1.x
+    Type: AWS::Serverless::Function
+
+  UserUpdateFunction:
+    Properties:
+      CodeUri: ./handlers/user-update/handler.zip
+      Environment:
+        Variables:
+          KEY_ID: !Ref Key
+          TABLE_NAME: !Ref UsersTable
+      Events:
+        Request:
+          Properties:
+            Method: PUT
+            Path: /users/{id}
+          Type: Api
+      FunctionName: !Sub ${AWS::StackName}-UserUpdateFunction
+      Handler: handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref NotificationTopic
+        - Statement:
+            - Action:
+                - kms:Encrypt
+              Effect: Allow
+              Resource: !GetAtt Key.Arn
+          Version: 2012-10-17
+      Runtime: go1.x
+    Type: AWS::Serverless::Function
+
+  UsersTable:
+    Properties:
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+    Type: AWS::Serverless::SimpleTable
+
   WorkerFunction:
     Properties:
       CodeUri: ./handlers/worker/handler.zip
@@ -112,6 +242,8 @@ Resources:
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref Bucket
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref NotificationTopic
       Runtime: go1.x
     Type: AWS::Serverless::Function
 
@@ -130,7 +262,14 @@ Resources:
       FunctionName: !Sub ${AWS::StackName}-WorkerPeriodicFunction
       Handler: handler
       Policies:
-        - AmazonS3FullAccess
+        - Statement:
+            - Action:
+                - s3:DeleteObject
+                - s3:ListObjects
+              Effect: Allow
+              Resource: !Sub "arn:aws:s3:::${Bucket}/*"
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref NotificationTopic
       Runtime: go1.x
     Type: AWS::Serverless::Function
 

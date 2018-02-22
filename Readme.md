@@ -21,8 +21,7 @@ It demonstrates:
 | Custom domains                          | CloudFront, ACM                         | [config](template.yml)                              |
 | Logs, Tracing                           | CloudWatch Logs, X-Ray, AWS SDKs for Go | [code](aws.go)                                      |
 | Notifications                           | SNS                                     | [code](notify.go)                                   |
-| Databases                               | DynamoDB                                | wip                                                 |
-| Encryption                              | KMS                                     | wip                                                 |
+| Databases and encryption at rest        | DynamoDB, KMS                           | [code](user.go)                                     |
 
 What's remarkable is how little work is required to get all functionality for our app. We don't need a framework, Platform-as-a-Service, or even any 3rd party Software-as-a-Service. And yes, we don't need servers. By standing on the shoulders of Go and AWS, all the undifferentiated heavy lifting is handled.
 

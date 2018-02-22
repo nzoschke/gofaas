@@ -7,6 +7,7 @@ app: dev
 clean:
 	rm -f ./handlers/dashboard/{handler,handler.zip}
 	rm -f ./handlers/user-create/{handler,handler.zip}
+	rm -f ./handlers/user-delete/{handler,handler.zip}
 	rm -f ./handlers/user-read/{handler,handler.zip}
 	rm -f ./handlers/user-update/{handler,handler.zip}
 	rm -f ./handlers/worker/{handler,handler.zip}
@@ -25,6 +26,7 @@ dev: handlers
 
 handlers: handlers/dashboard/handler.zip \
 	handlers/user-create/handler.zip \
+	handlers/user-delete/handler.zip \
 	handlers/user-read/handler.zip \
 	handlers/user-update/handler.zip \
 	handlers/worker/handler.zip \
@@ -35,6 +37,9 @@ handlers/dashboard/handler.zip: *.go handlers/dashboard/*.go
 
 handlers/user-create/handler.zip: *.go handlers/user-create/*.go
 	cd ./handlers/user-create && GOOS=linux go build -o handler . && zip handler.zip handler
+
+handlers/user-delete/handler.zip: *.go handlers/user-delete/*.go
+	cd ./handlers/user-delete && GOOS=linux go build -o handler . && zip handler.zip handler
 
 handlers/user-read/handler.zip: *.go handlers/user-read/*.go
 	cd ./handlers/user-read && GOOS=linux go build -o handler . && zip handler.zip handler

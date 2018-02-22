@@ -21,21 +21,35 @@ type User struct {
 	Username   string `json:"username"`
 }
 
-// RE is an empty response
-var RE = events.APIGatewayProxyResponse{}
-
 // UserCreate creates a user
 func UserCreate(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	u := &User{}
 	if err := json.Unmarshal([]byte(e.Body), u); err != nil {
-		return RE, errors.WithStack(err)
+		return responseEmpty, errors.WithStack(err)
 	}
 
 	u.ID = uuid.NewV4().String()
 	u.TokenPlain = uuid.NewV4().String()
 
 	if err := userPut(ctx, u); err != nil {
-		return RE, errors.WithStack(err)
+		return responseEmpty, errors.WithStack(err)
+	}
+
+	return userResponse(u)
+}
+
+// UserDelete deletes a user by id
+func UserDelete(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	u, err := userGet(ctx, e.PathParameters["id"], false)
+	if err != nil {
+		if err, ok := err.(ResponseError); ok {
+			return err.Response()
+		}
+		return responseEmpty, errors.WithStack(err)
+	}
+
+	if err := userDelete(ctx, u); err != nil {
+		return responseEmpty, errors.WithStack(err)
 	}
 
 	return userResponse(u)
@@ -50,7 +64,10 @@ func UserRead(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIG
 
 	u, err := userGet(ctx, e.PathParameters["id"], decrypt)
 	if err != nil {
-		return RE, errors.WithStack(err)
+		if err, ok := err.(ResponseError); ok {
+			return err.Response()
+		}
+		return responseEmpty, errors.WithStack(err)
 	}
 
 	return userResponse(u)
@@ -60,18 +77,21 @@ func UserRead(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIG
 func UserUpdate(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	nu := &User{}
 	if err := json.Unmarshal([]byte(e.Body), nu); err != nil {
-		return RE, errors.WithStack(err)
+		return responseEmpty, errors.WithStack(err)
 	}
 
 	u, err := userGet(ctx, e.PathParameters["id"], false)
 	if err != nil {
-		return RE, errors.WithStack(err)
+		if err, ok := err.(ResponseError); ok {
+			return err.Response()
+		}
+		return responseEmpty, errors.WithStack(err)
 	}
 
 	u.Username = nu.Username
 
 	if err := userPut(ctx, u); err != nil {
-		return RE, errors.WithStack(err)
+		return responseEmpty, errors.WithStack(err)
 	}
 
 	return userResponse(u)
@@ -88,6 +108,9 @@ func userGet(ctx context.Context, id string, decrypt bool) (*User, error) {
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
+	}
+	if out.Item == nil {
+		return nil, ResponseError{"not found", 404}
 	}
 
 	u := User{
@@ -110,6 +133,19 @@ func userGet(ctx context.Context, id string, decrypt bool) (*User, error) {
 	return &u, nil
 }
 
+func userDelete(ctx context.Context, u *User) error {
+	_, err := DynamoDB().DeleteItemWithContext(ctx, &dynamodb.DeleteItemInput{
+		Key: map[string]*dynamodb.AttributeValue{
+			"id": &dynamodb.AttributeValue{
+				S: aws.String(u.ID),
+			},
+		},
+		TableName: aws.String(os.Getenv("TABLE_NAME")),
+	})
+
+	return errors.WithStack(err)
+}
+
 func userPut(ctx context.Context, u *User) error {
 	// encrypt a token plaintext if set
 	if u.TokenPlain != "" {
@@ -118,7 +154,7 @@ func userPut(ctx context.Context, u *User) error {
 			KeyId:     aws.String(os.Getenv("KEY_ID")),
 		})
 		if err != nil {
-			return err
+			return errors.WithStack(err)
 		}
 
 		u.Token = out.CiphertextBlob
@@ -139,13 +175,13 @@ func userPut(ctx context.Context, u *User) error {
 		},
 		TableName: aws.String(os.Getenv("TABLE_NAME")),
 	})
-	return err
+	return errors.WithStack(err)
 }
 
 func userResponse(u *User) (events.APIGatewayProxyResponse, error) {
 	b, err := json.MarshalIndent(u, "", "  ")
 	if err != nil {
-		return RE, errors.WithStack(err)
+		return responseEmpty, errors.WithStack(err)
 	}
 
 	return events.APIGatewayProxyResponse{

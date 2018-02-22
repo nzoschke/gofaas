@@ -15,9 +15,10 @@ import (
 
 // User represents a user
 type User struct {
-	ID       string `json:"id"`
-	Token    string `json:"token,omitempty"`
-	Username string `json:"username"`
+	ID         string `json:"id"`
+	Token      []byte `json:"-"`
+	TokenPlain string `json:"token,omitempty"`
+	Username   string `json:"username"`
 }
 
 // RE is an empty response
@@ -25,119 +26,58 @@ var RE = events.APIGatewayProxyResponse{}
 
 // UserCreate creates a user
 func UserCreate(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	u := User{}
-	if err := json.Unmarshal([]byte(e.Body), &u); err != nil {
+	u := &User{}
+	if err := json.Unmarshal([]byte(e.Body), u); err != nil {
 		return RE, errors.WithStack(err)
 	}
 
 	u.ID = uuid.NewV4().String()
+	u.TokenPlain = uuid.NewV4().String()
 
-	out, err := KMS().EncryptWithContext(ctx, &kms.EncryptInput{
-		Plaintext: []byte(uuid.NewV4().String()),
-		KeyId:     aws.String(os.Getenv("KEY_ID")),
-	})
-	if err != nil {
+	if err := userPut(ctx, u); err != nil {
 		return RE, errors.WithStack(err)
 	}
 
-	_, err = DynamoDB().PutItemWithContext(ctx, &dynamodb.PutItemInput{
-		Item: map[string]*dynamodb.AttributeValue{
-			"id": &dynamodb.AttributeValue{
-				S: aws.String(u.ID),
-			},
-			"token": &dynamodb.AttributeValue{
-				B: out.CiphertextBlob,
-			},
-			"username": &dynamodb.AttributeValue{
-				S: aws.String(u.Username),
-			},
-		},
-		TableName: aws.String(os.Getenv("TABLE_NAME")),
-	})
-	if err != nil {
-		return RE, errors.WithStack(err)
-	}
-
-	b, err := json.MarshalIndent(u, "", "  ")
-	if err != nil {
-		return RE, errors.WithStack(err)
-	}
-
-	return events.APIGatewayProxyResponse{
-		Body: string(b) + "\n",
-		Headers: map[string]string{
-			"Content-Type": "application/json",
-		},
-		StatusCode: 200,
-	}, nil
+	return userResponse(u)
 }
 
 // UserRead returns a user by id
 func UserRead(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	u, err := getUser(ctx, e.PathParameters["id"])
-	if err != nil {
-		return RE, nil
+	decrypt := false
+	if e.QueryStringParameters["token"] == "true" {
+		decrypt = true
 	}
 
-	// mask token
-	if e.QueryStringParameters["token"] != "true" {
-		u.Token = ""
-	}
-
-	b, err := json.MarshalIndent(u, "", "  ")
+	u, err := userGet(ctx, e.PathParameters["id"], decrypt)
 	if err != nil {
 		return RE, errors.WithStack(err)
 	}
 
-	return events.APIGatewayProxyResponse{
-		Body: string(b) + "\n",
-		Headers: map[string]string{
-			"Content-Type": "application/json",
-		},
-		StatusCode: 200,
-	}, nil
+	return userResponse(u)
 }
 
 // UserUpdate updates a user by id
 func UserUpdate(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	u, err := getUser(ctx, e.PathParameters["id"])
-	if err != nil {
-		return RE, nil
+	nu := &User{}
+	if err := json.Unmarshal([]byte(e.Body), nu); err != nil {
+		return RE, errors.WithStack(err)
 	}
 
-	_, err = DynamoDB().PutItemWithContext(ctx, &dynamodb.PutItemInput{
-		Item: map[string]*dynamodb.AttributeValue{
-			"id": &dynamodb.AttributeValue{
-				S: aws.String(u.ID),
-			},
-			"token": &dynamodb.AttributeValue{
-				B: []byte(u.Token), // FIXME: pass through from getUser
-			},
-			"username": &dynamodb.AttributeValue{
-				S: aws.String(u.Username),
-			},
-		},
-		TableName: aws.String(os.Getenv("TABLE_NAME")),
-	})
+	u, err := userGet(ctx, e.PathParameters["id"], false)
 	if err != nil {
 		return RE, errors.WithStack(err)
 	}
 
-	b, err := json.MarshalIndent(u, "", "  ")
-	if err != nil {
+	u.Username = nu.Username
+
+	if err := userPut(ctx, u); err != nil {
 		return RE, errors.WithStack(err)
 	}
 
-	return events.APIGatewayProxyResponse{
-		Body: string(b) + "\n",
-		Headers: map[string]string{
-			"Content-Type": "application/json",
-		},
-		StatusCode: 200,
-	}, nil
+	return userResponse(u)
 }
 
-func getUser(ctx context.Context, id string) (*User, error) {
+func userGet(ctx context.Context, id string, decrypt bool) (*User, error) {
 	out, err := DynamoDB().GetItemWithContext(ctx, &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": &dynamodb.AttributeValue{
@@ -150,18 +90,69 @@ func getUser(ctx context.Context, id string) (*User, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	dout, err := KMS().DecryptWithContext(ctx, &kms.DecryptInput{
-		CiphertextBlob: out.Item["token"].B,
-	})
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
 	u := User{
 		ID:       *out.Item["id"].S,
-		Token:    string(dout.Plaintext),
+		Token:    out.Item["token"].B,
 		Username: *out.Item["username"].S,
 	}
 
+	// optionally decrypt the token ciphertext
+	if decrypt {
+		out, err := KMS().DecryptWithContext(ctx, &kms.DecryptInput{
+			CiphertextBlob: u.Token,
+		})
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		u.TokenPlain = string(out.Plaintext)
+	}
+
 	return &u, nil
+}
+
+func userPut(ctx context.Context, u *User) error {
+	// encrypt a token plaintext if set
+	if u.TokenPlain != "" {
+		out, err := KMS().EncryptWithContext(ctx, &kms.EncryptInput{
+			Plaintext: []byte(u.TokenPlain),
+			KeyId:     aws.String(os.Getenv("KEY_ID")),
+		})
+		if err != nil {
+			return err
+		}
+
+		u.Token = out.CiphertextBlob
+		u.TokenPlain = ""
+	}
+
+	_, err := DynamoDB().PutItemWithContext(ctx, &dynamodb.PutItemInput{
+		Item: map[string]*dynamodb.AttributeValue{
+			"id": &dynamodb.AttributeValue{
+				S: aws.String(u.ID),
+			},
+			"token": &dynamodb.AttributeValue{
+				B: u.Token,
+			},
+			"username": &dynamodb.AttributeValue{
+				S: aws.String(u.Username),
+			},
+		},
+		TableName: aws.String(os.Getenv("TABLE_NAME")),
+	})
+	return err
+}
+
+func userResponse(u *User) (events.APIGatewayProxyResponse, error) {
+	b, err := json.MarshalIndent(u, "", "  ")
+	if err != nil {
+		return RE, errors.WithStack(err)
+	}
+
+	return events.APIGatewayProxyResponse{
+		Body: string(b) + "\n",
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+		StatusCode: 200,
+	}, nil
 }

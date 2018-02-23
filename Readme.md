@@ -29,14 +29,23 @@ We just need an [AWS Serverless Application Model (SAM)](https://github.com/awsl
 
 ## Quick Start
 
-This project uses [Go 1.10](https://golang.org/), [dep](https://github.com/golang/dep), [AWS CLI](https://aws.amazon.com/cli/), [AWS SAM Local](https://docs.aws.amazon.com/lambda/latest/dg/test-sam-local.html) and [Docker CE](https://www.docker.com/community-edition).
+This project uses :
+
+- [AWS CLI](https://aws.amazon.com/cli/)
+- [AWS SAM Local](https://docs.aws.amazon.com/lambda/latest/dg/test-sam-local.html)
+- [Docker CE](https://www.docker.com/community-edition)
+- [Go 1.10](https://golang.org/)
+- [watchexec](https://github.com/mattgreen/watchexec).
 
 ```console
-## install tools
+## install CLI tools
 
-$ brew install aws-cli go
+$ brew install aws-cli go watchexec
 $ go get -u github.com/awslabs/aws-sam-local 
-$ go get -u github.com/golang/dep/cmd/dep
+
+## install Docker CE from the Docker Store
+
+$ open https://store.docker.com/search?type=edition&offering=community
 ```
 
 <details>
@@ -73,6 +82,9 @@ Server:
 
 $ go version
 go version go1.10 darwin/amd64
+
+$ watchexec --version
+watchexec 1.8.6
 ```
 </details>
 

@@ -203,6 +203,21 @@ Look at that speedy 11 ms duration! Go is faster than the minimum billing durati
 
 This gives us confidence in our production environment.
 
+### Development environment
+
+If we want to database functions locally, you need to give the functions pointers to the DynamoDB and KMS keys. Open up `env.json` and fill in `KEY_ID` and `TABLE_NAME` with the ids of the resources we just created on deploy:
+
+```console
+## describe stack resources
+
+$ aws cloudformation describe-stack-resources --output text --stack-name gofaas \
+  --query 'StackResources[*].{Name:LogicalResourceId,Id:PhysicalResourceId,Type:ResourceType}' | \
+  grep 'Key\|UsersTable'
+
+8eb8e209-51fb-41fa-adfe-1ec401667df4  Key         AWS::KMS::Key
+gofaas-UsersTable-1CYAQH3HHHRGW       UsersTable  AWS::DynamoDB::Table
+```
+
 ## Docs
 
 Check out [the gofaas docs folder](docs/) where each component is explained in more details.

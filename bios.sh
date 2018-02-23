@@ -11,5 +11,5 @@ run -s "YAML Linting" python3 .pip/yamllint -d "{extends: default, rules: {line-
 PKGS=$(go list $PKG/...)
 run -s "Linting"  golint -set_exit_status $PKGS
 run -s "Vetting"  go vet -x $PKGS
-run -s "Building" go build -v $PKGS
+run -s "Making"   make -j handlers
 run -s "Testing"  go test -v $PKGS

@@ -1,5 +1,6 @@
 __pycache__
 *.pyc
+gofaas
 handler
 handler.zip
 out.yml

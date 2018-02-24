@@ -16,8 +16,8 @@ It demonstrates:
 
 | Component                               | Via                                     |  Links                                              |
 | --------------------------------------- |-----------------------------------------|-----------------------------------------------------|
-| HTTP functions                          | Lambda, API Gateway                     | [code](dashboard.go) [docs](docs/http-functions.md) |
-| Worker functions (one-off and periodic) | Lambda, Invoke API, CloudWatch Events   | [code](worker.go)                                   |
+| HTTP functions                          | Lambda, API Gateway                     | [docs](docs/http-functions.md) [code](dashboard.go) |
+| Worker functions (one-off and periodic) | Lambda, Invoke API, CloudWatch Events   | [docs](docs/worker-functions.md) [code](worker.go)  |
 | Packaging, development and deployment   | make, go, aws-sam-local, CloudFormation | [config](Makefile)                                  |
 | Per-function environment and policies   | Lambda, IAM                             | [config](template.yml)                              |
 | Custom domains                          | CloudFront, ACM                         | [config](template.yml)                              |
@@ -126,7 +126,7 @@ $ aws iam get-user
 ```
 </details>
 
-### Get the app
+### Get the App
 
 We start by getting and testing the `github.com/nzoschke/gofaas`.
 
@@ -145,7 +145,7 @@ ok  	github.com/nzoschke/gofaas	0.014s
 
 This gives us confidence in our Go environment.
 
-### Develop the app
+### Develop the App
 
 ```console
 ## build and start development server
@@ -172,7 +172,7 @@ Note: if you see `No AWS credentials found. Missing credentials may lead to slow
 
 This gives us confidence in our development environment.
 
-### Deploy the app
+### Deploy the App
 
 ```console
 ## package and deploy the app
@@ -205,7 +205,7 @@ Look at that speedy 11 ms duration! Go is faster than the minimum billing durati
 
 This gives us confidence in our production environment.
 
-### Development environment
+### Development Environment
 
 If we want to database functions locally, you need to give the functions pointers to the DynamoDB and KMS keys. Open up `env.json` and fill in `KEY_ID` and `TABLE_NAME` with the ids of the resources we just created on deploy:
 

@@ -1,6 +1,8 @@
 # gofaas - Go Functions-as-a-Service
 
-A project that demonstrates idiomatic Go with AWS Lambda and related "serverless" services.
+Running a Go app on AWS Lambda is easier than ever, once you figure out how to configure 10 or so "serverless" services to support the functions.
+
+This project demonstrates how to assemble all the pieces -- a Go project, AWS config, and dev/build/deploy commands -- letting us skip the boilerplate and focus on writing and shipping Go code.
 
 ## Motivation
 
@@ -25,7 +27,7 @@ It demonstrates:
 
 What's remarkable is how little work is required to get all functionality for our app. We don't need a framework, Platform-as-a-Service, or even any 3rd party Software-as-a-Service. And yes, we don't need servers. By standing on the shoulders of Go and AWS, all the undifferentiated heavy lifting is handled.
 
-We just need an [AWS Serverless Application Model (SAM)](https://github.com/awslabs/serverless-application-model) [config file](template.yml), and we can focus entirely on writing our Go functions.
+We just need a good AWS [config file](template.yml), then we can focus entirely on writing our Go functions.
 
 ## Quick Start
 
@@ -35,7 +37,7 @@ This project uses :
 - [AWS SAM Local](https://docs.aws.amazon.com/lambda/latest/dg/test-sam-local.html)
 - [Docker CE](https://www.docker.com/community-edition)
 - [Go 1.10](https://golang.org/)
-- [watchexec](https://github.com/mattgreen/watchexec).
+- [watchexec](https://github.com/mattgreen/watchexec)
 
 ```console
 ## install CLI tools

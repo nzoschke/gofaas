@@ -1,7 +1,5 @@
----
-Title: Intro to Go Functions-as-a-Service and Lambda
-Subtitle: Why FaaS matters and why Go is well-suited for Lambda
----
+# Intro to Go Functions-as-a-Service and Lambda
+## Why FaaS matters and why Go is well-suited for Lambda
 
 ## Intro to FaaS and Serverless
 
@@ -59,4 +57,4 @@ Many responsibilities are no longer our problems:
 - Managing container clusters
 - Building container images
 
-We get to worry about less, and likely pay less. No wonder there's so much hype around Serverless, FaaS and Lambda. And it seems like Go is a great choice for writing all those functions.
+We get to worry about less, and likely pay less. No wonder there's so much hype around serverless, FaaS and Lambda. And it seems like Go is a great choice for writing all those functions.

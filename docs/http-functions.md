@@ -8,6 +8,8 @@ An obvious application of a Go Lambda function is to handle an HTTP request. To 
 First, we write a HTTP request handler function, which couldn't be easier in Go:
 
 ```go
+import "github.com/aws/aws-lambda-go/events"
+
 func Dashboard(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	return events.APIGatewayProxyResponse{
 		Body: string("<html><body><h1>gofaas dashboard</h1></body></html>\n"),
@@ -43,8 +45,6 @@ Resources:
           Type: Api
       Handler: handler
       Runtime: go1.x
-      Timeout: 5
-      Tracing: Active
     Type: AWS::Serverless::Function
 ```
 > From [template.yml](template.yml)
@@ -90,6 +90,8 @@ $ aws cloudformation deploy --capabilities CAPABILITY_NAMED_IAM --template-file 
 > From [Makefile](Makefile)
 
 The `package` command uploads the zip file to S3 and writes a new template with the S3 URL. Then `deploy` does creates or updates our Lambda function with the new package. In less than a minute we have a Go HTTP Function online.
+
+Finally we can call our function over HTTP:
 
 ```shell
 curl https://x19vpdk568.execute-api.us-east-1.amazonaws.com/Prod

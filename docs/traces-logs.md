@@ -1,0 +1,209 @@
+# Function Traces and Logs
+### With Go, Lambda, CloudWatch Logs and X-Ray
+
+As we keep adding more functions with responsibilities for various services, it can become a challenge to spot and diagnose errors.
+
+We natually will add more logging to our Go code over time.
+
+But imagine if we see error from a worker API. How do we know if error was due to:
+
+- AWS API Gateway internal error
+- AWS Lambda capacity problem
+- Our worker function
+- AWS S3 permission error
+
+Go on Lambda offers a new and compelling strategy for observability: tracing.
+
+Tracing is a technique that big companies like Amazon, Google and Twitter rely on to understand their large-scale distributed system.
+
+With tracing, every request that comes in is given a unique request ID. Then care is taken to pass this request ID along to every subsystem that works on the request so they can report detailed, structured information about how their success or failures in handling the request.
+
+This information is generally "segments" of work -- data with a start time, end time and other metadata like a function name, return value or error message.
+
+One system might emit segments for many short function calls, then a single long RPC call. And the system that performs the RPC call itself might emit many segments for its function calls.
+
+A centralized tracing service collects data from all the disparate systems and server and assembles them to provide a full picture of the lifecycle of the request. We can now see total response time, and in the case of a failure pinpoint exactly where it happened.
+
+## AWS Config -- X-Ray and Lambda
+
+Tracing is a first-class concept on AWS Lambda.
+
+We can turn on "active tracing" in the SAM `Globals` section or as a property of every Lambda function:
+
+```yaml
+Globals:
+  Function:
+    Tracing: Active
+
+Resources:
+  WorkerFunction:
+    Properties:
+      Tracing: Active
+    Type: AWS::Serverless::Function
+```
+> From [template.yml](template.yml)
+
+## Go Code -- Context pattern
+
+Tracing is effectively a first-class concept in Golang too.
+
+Because Go is built by Google with a goal of making distributed systems programming easy, it is well-suited for tracing. It offers something for tracing in the standard library: the [context package](https://golang.org/pkg/context/) and the Context type.
+
+We may have noticed that every Lambda function has a first argument of `ctx context.Context`. We also see the ctx argument in many other Go packages like the AWS SDK. This variable provides a way to share information, like a request ID, across all our code and 3rd party libraries we use. Go opts for a variable for safety -- we can't safely share data between all the systems, we have to pass data down to them.
+
+```go
+package gofaas
+
+import (
+	"context"
+	"os"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/pkg/errors"
+)
+
+func userPut(ctx context.Context, u *User) error {
+	if u.TokenPlain != "" {
+		out, err := KMS().EncryptWithContext(ctx, &kms.EncryptInput{
+			Plaintext: []byte(u.TokenPlain),
+			KeyId:     aws.String(os.Getenv("KEY_ID")),
+		})
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		u.Token = out.CiphertextBlob
+		u.TokenPlain = ""
+	}
+
+	_, err := DynamoDB().PutItemWithContext(ctx, &dynamodb.PutItemInput{
+		Item: map[string]*dynamodb.AttributeValue{
+			"id": &dynamodb.AttributeValue{
+				S: aws.String(u.ID),
+			},
+			"token": &dynamodb.AttributeValue{
+				B: u.Token,
+			},
+			"username": &dynamodb.AttributeValue{
+				S: aws.String(u.Username),
+			},
+		},
+		TableName: aws.String(os.Getenv("TABLE_NAME")),
+	})
+	return errors.WithStack(err)
+}
+```
+> From [user.go](user.go)
+
+## Go Code -- Xray SDK
+
+Next we reach for the [aws/aws-xray-go-sdk package](https://github.com/aws/aws-xray-sdk-go). This gives us a way to generate segment data and send it to a local X-Ray daemon which will eventually forward traces to the X-Ray API.
+
+To start, the SDK lets us wrap the AWS SDK so that all AWS API calls are traced:
+
+```go
+package gofaas
+
+import (
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/aws/aws-xray-sdk-go/xray"
+)
+
+func init() {
+	xray.Configure(xray.Config{
+		LogLevel: "info",
+	})
+}
+
+// DynamoDB is an xray instrumented DynamoDB client
+func DynamoDB() *dynamodb.DynamoDB {
+	c := dynamodb.New(session.Must(session.NewSession()))
+	xray.AWS(c.Client)
+	return c
+}
+
+// KMS is an xray instrumented KMS client
+func KMS() *kms.KMS {
+	c := kms.New(session.Must(session.NewSession()))
+	xray.AWS(c.Client)
+	return c
+}
+```
+> From [aws.go](aws.go)
+
+We can also use the X-Ray SDK to trace external HTTP calls, SQL calls, or create any custom segments and subsegments. Refer to the [X-Ray SDK for Go](https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-go.html) developer guide for more details.
+
+## Results
+
+We can browse to the X-Ray web console to view our traces.
+
+<p align="center">
+  <img src="img/xray-service-map.png" alt="X-Ray Service Map" width="440" />
+  <img src="img/xray-trace.png" alt="X-Ray Trace" width="440" />
+</p>
+
+The service map offers a overfiew of our app. We can see all of the calls to our functions and the AWS APIs they consume. Note that we're seeing an error with SNS calls. It turns out IAM permissions are incorrect...
+
+The trace details offers a deep dive into a function call. We can see our function took 324ms, and spent 140ms on the KMS call and 200ms on the DynamoDB call.
+
+These are powerful views into our functions with little change to the code and config.
+
+## Go Code -- Logging
+
+Go programmers should be familiar with using logs to debug functions. It's very common to aid development and debugging with `log.Printf()` statements:
+
+```go
+func MyHandler(ctx context.Context, e Event) error {
+	log.Printf("MyHandler e: %+v\n", e)
+
+	out, err := foo()
+	log.Printf("MyHandler foo err=%q out: %+v\n", err, out)
+
+	return err
+}
+```
+
+It should be no surprise that Lambda supports this out of the box. Logs printed to stdout and stderr are captured and sent to CloudWatch Logs for further review.
+
+## cw log tail command
+
+We can use a [CLI utility like `cw`](https://github.com/lucagrulla/cw) to review logs:
+
+```shell
+$ go get github.com/lucagrulla/cw
+
+$ cw ls groups
+/aws/lambda/gofaas-DashboardFunction
+...
+
+$ cw tail -f /aws/lambda/gofaas-DashboardFunction
+START RequestId: 72dceba9-1a65-11e8-b628-8b3fbdd14d50 Version: $LATEST
+END RequestId: 72dceba9-1a65-11e8-b628-8b3fbdd14d50
+REPORT RequestId: 72dceba9-1a65-11e8-b628-8b3fbdd14d50	Duration: 16.44 ms	Billed Duration: 100 ms 	Memory Size: 128 MB	Max Memory Used: 42 MB
+...
+```
+
+The `cw` tool, and CloudWatch Logs dashboard and API offer additional ways to access logs by time, and to filter logs by a pattern. See the [CloudWatch Logs User Guide](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html) for more details.
+
+## Summary
+
+When building an app with Go, Lambda, CloudWatch Logs and X-Ray we can:
+
+- See internal AWS service traces
+- Add traces of function AWS API calls
+- Add traces of function HTTP calls
+- Visualize function flow and errors
+- Collect, tail and search function logs
+
+We don't have to:
+
+- Change our Go code
+- Monkeypatch the Go internals
+- Manage trace or log collectors
+- Run trace or log servers
+
+Go, tracing and logging make our app easier to observe.

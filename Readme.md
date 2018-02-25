@@ -21,7 +21,7 @@ It demonstrates:
 | [Development, packaging and deployment][3]   | make, go, aws-sam-local, CloudFormation | [⚙️](Makefile)     |
 | [Per-function environment and policies][4]   | Lambda, IAM                             | [⚙️](template.yml) |
 | [Custom domains][5]                          | CloudFront, ACM                         | [⚙️](template.yml) |
-| [Logs, Tracing][6]                           | CloudWatch Logs, X-Ray, AWS SDKs for Go | [💾](aws.go)       |
+| [Function traces and logs][6]                | CloudWatch Logs, X-Ray, AWS SDKs for Go | [💾](aws.go)       |
 | [Notifications][7]                           | SNS                                     | [💾](notify.go)    |
 | [Databases and encryption at rest][8]        | DynamoDB, KMS                           | [💾](user.go)      |
 
@@ -30,7 +30,7 @@ It demonstrates:
 [3]: docs/dev-package-deploy.md
 [4]: docs/per-function-policies.md
 [5]: docs/custom-domains.md
-[6]: docs/logs-tracing.md
+[6]: docs/traces-logs.md
 [7]: docs/notifications.md
 [8]: docs/databases-encryption.md
 

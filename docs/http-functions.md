@@ -24,7 +24,7 @@ func Dashboard(ctx context.Context, e events.APIGatewayProxyRequest) (events.API
 
 The `APIGatewayProxyRequest` struct contains a user's HTTP request body, headers and metadata. The `APIGatewayProxyResponse` struct contains our HTTP response body, headers and status code.
 
-This function is essentially error proof, but if it did return an error the API Gateway knows to respond to the user with a 500 status code.
+This function is essentially error proof, but if it did return an error the API Gateway knows to respond to the user with a `502 Bad Gateway` HTTP response.
 
 ## AWS Config
 

@@ -1,6 +1,8 @@
 # gofaas - Go Functions-as-a-Service
 
-A project that demonstrates idiomatic Go with AWS Lambda and related "serverless" services.
+Running a Go app on AWS Lambda is easier than ever, once you figure out how to configure 10 or so "serverless" services to support the functions.
+
+This project demonstrates how to assemble all the pieces -- a Go project, AWS config, and dev/build/deploy commands -- letting us skip the boilerplate and focus on writing and shipping Go code.
 
 ## Motivation
 
@@ -12,20 +14,20 @@ This project demonstrates a simple and clean foundation for Go in Lambda. You ca
 
 It demonstrates:
 
-| Component                               | Via                                     |  Links                                              |
-| --------------------------------------- |-----------------------------------------|-----------------------------------------------------|
-| HTTP functions                          | Lambda, API Gateway                     | [code](dashboard.go) [docs](docs/http-functions.md) |
-| Worker functions (one-off and periodic) | Lambda, Invoke API, CloudWatch Events   | [code](worker.go)                                   |
-| Packaging, development and deployment   | make, go, aws-sam-local, CloudFormation | [config](Makefile)                                  |
-| Per-function environment and policies   | Lambda, IAM                             | [config](template.yml)                              |
-| Custom domains                          | CloudFront, ACM                         | [config](template.yml)                              |
-| Logs, Tracing                           | CloudWatch Logs, X-Ray, AWS SDKs for Go | [code](aws.go)                                      |
-| Notifications                           | SNS                                     | [code](notify.go)                                   |
-| Databases and encryption at rest        | DynamoDB, KMS                           | [code](user.go)                                     |
+| Component                               | Via                                     |  Links                                                |
+| --------------------------------------- |-----------------------------------------|-------------------------------------------------------|
+| HTTP functions                          | Lambda, API Gateway                     | [docs](docs/http-functions.md) [code](dashboard.go)   |
+| Worker functions (one-off and periodic) | Lambda, Invoke API, CloudWatch Events   | [docs](docs/worker-functions.md) [code](worker.go)    |
+| Development, packaging and deployment   | make, go, aws-sam-local, CloudFormation | [docs](docs/dev-package-deploy.md) [config](Makefile) |
+| Per-function environment and policies   | Lambda, IAM                             | [config](template.yml)                                |
+| Custom domains                          | CloudFront, ACM                         | [config](template.yml)                                |
+| Logs, Tracing                           | CloudWatch Logs, X-Ray, AWS SDKs for Go | [code](aws.go)                                        |
+| Notifications                           | SNS                                     | [code](notify.go)                                     |
+| Databases and encryption at rest        | DynamoDB, KMS                           | [code](user.go)                                       |
 
 What's remarkable is how little work is required to get all functionality for our app. We don't need a framework, Platform-as-a-Service, or even any 3rd party Software-as-a-Service. And yes, we don't need servers. By standing on the shoulders of Go and AWS, all the undifferentiated heavy lifting is handled.
 
-We just need an [AWS Serverless Application Model (SAM)](https://github.com/awslabs/serverless-application-model) [config file](template.yml), and we can focus entirely on writing our Go functions.
+We just need a good AWS [config file](template.yml), then we can focus entirely on writing our Go functions.
 
 ## Quick Start
 
@@ -35,7 +37,7 @@ This project uses :
 - [AWS SAM Local](https://docs.aws.amazon.com/lambda/latest/dg/test-sam-local.html)
 - [Docker CE](https://www.docker.com/community-edition)
 - [Go 1.10](https://golang.org/)
-- [watchexec](https://github.com/mattgreen/watchexec).
+- [watchexec](https://github.com/mattgreen/watchexec)
 
 ```console
 ## install CLI tools
@@ -124,7 +126,7 @@ $ aws iam get-user
 ```
 </details>
 
-### Get the app
+### Get the App
 
 We start by getting and testing the `github.com/nzoschke/gofaas`.
 
@@ -143,7 +145,7 @@ ok  	github.com/nzoschke/gofaas	0.014s
 
 This gives us confidence in our Go environment.
 
-### Develop the app
+### Develop the App
 
 ```console
 ## build and start development server
@@ -170,7 +172,7 @@ Note: if you see `No AWS credentials found. Missing credentials may lead to slow
 
 This gives us confidence in our development environment.
 
-### Deploy the app
+### Deploy the App
 
 ```console
 ## package and deploy the app
@@ -203,7 +205,7 @@ Look at that speedy 11 ms duration! Go is faster than the minimum billing durati
 
 This gives us confidence in our production environment.
 
-### Development environment
+### Development Environment
 
 If we want to database functions locally, you need to give the functions pointers to the DynamoDB and KMS keys. Open up `env.json` and fill in `KEY_ID` and `TABLE_NAME` with the ids of the resources we just created on deploy:
 

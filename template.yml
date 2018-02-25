@@ -10,7 +10,7 @@ Globals:
   Function:
     Environment:
       Variables:
-        NOTIFICATION_TOPIC: !Ref NotificationTopic
+        NOTIFICATION_TOPIC: !GetAtt NotificationTopic.TopicName
     Handler: handler
     Runtime: go1.x
     Timeout: 5
@@ -83,7 +83,7 @@ Resources:
       Handler: handler
       Policies:
         - SNSPublishMessagePolicy:
-            TopicName: !Ref NotificationTopic
+            TopicName: !GetAtt NotificationTopic.TopicName
       Runtime: go1.x
     Type: AWS::Serverless::Function
 
@@ -137,7 +137,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
         - SNSPublishMessagePolicy:
-            TopicName: !Ref NotificationTopic
+            TopicName: !GetAtt NotificationTopic.TopicName
         - Statement:
             - Action:
                 - kms:Encrypt
@@ -166,7 +166,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
         - SNSPublishMessagePolicy:
-            TopicName: !Ref NotificationTopic
+            TopicName: !GetAtt NotificationTopic.TopicName
       Runtime: go1.x
     Type: AWS::Serverless::Function
 
@@ -191,7 +191,7 @@ Resources:
         - KMSDecryptPolicy:
             KeyId: !Ref Key
         - SNSPublishMessagePolicy:
-            TopicName: !Ref NotificationTopic
+            TopicName: !GetAtt NotificationTopic.TopicName
       Runtime: go1.x
     Type: AWS::Serverless::Function
 
@@ -214,7 +214,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
         - SNSPublishMessagePolicy:
-            TopicName: !Ref NotificationTopic
+            TopicName: !GetAtt NotificationTopic.TopicName
         - Statement:
             - Action:
                 - kms:Encrypt
@@ -243,7 +243,7 @@ Resources:
         - S3CrudPolicy:
             BucketName: !Ref Bucket
         - SNSPublishMessagePolicy:
-            TopicName: !Ref NotificationTopic
+            TopicName: !GetAtt NotificationTopic.TopicName
       Runtime: go1.x
     Type: AWS::Serverless::Function
 
@@ -269,7 +269,7 @@ Resources:
               Effect: Allow
               Resource: !Sub "arn:aws:s3:::${Bucket}/*"
         - SNSPublishMessagePolicy:
-            TopicName: !Ref NotificationTopic
+            TopicName: !GetAtt NotificationTopic.TopicName
       Runtime: go1.x
     Type: AWS::Serverless::Function
 

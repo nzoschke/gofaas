@@ -14,16 +14,16 @@ This project demonstrates a simple and clean foundation for Go in Lambda. You ca
 
 It demonstrates:
 
-| Component                               | Via                                     |  Links                                              |
-| --------------------------------------- |-----------------------------------------|-----------------------------------------------------|
-| HTTP functions                          | Lambda, API Gateway                     | [docs](docs/http-functions.md) [code](dashboard.go) |
-| Worker functions (one-off and periodic) | Lambda, Invoke API, CloudWatch Events   | [docs](docs/worker-functions.md) [code](worker.go)  |
-| Packaging, development and deployment   | make, go, aws-sam-local, CloudFormation | [config](Makefile)                                  |
-| Per-function environment and policies   | Lambda, IAM                             | [config](template.yml)                              |
-| Custom domains                          | CloudFront, ACM                         | [config](template.yml)                              |
-| Logs, Tracing                           | CloudWatch Logs, X-Ray, AWS SDKs for Go | [code](aws.go)                                      |
-| Notifications                           | SNS                                     | [code](notify.go)                                   |
-| Databases and encryption at rest        | DynamoDB, KMS                           | [code](user.go)                                     |
+| Component                               | Via                                     |  Links                                                |
+| --------------------------------------- |-----------------------------------------|-------------------------------------------------------|
+| HTTP functions                          | Lambda, API Gateway                     | [docs](docs/http-functions.md) [code](dashboard.go)   |
+| Worker functions (one-off and periodic) | Lambda, Invoke API, CloudWatch Events   | [docs](docs/worker-functions.md) [code](worker.go)    |
+| Development, packaging and deployment   | make, go, aws-sam-local, CloudFormation | [docs](docs/dev-package-deploy.md) [config](Makefile) |
+| Per-function environment and policies   | Lambda, IAM                             | [config](template.yml)                                |
+| Custom domains                          | CloudFront, ACM                         | [config](template.yml)                                |
+| Logs, Tracing                           | CloudWatch Logs, X-Ray, AWS SDKs for Go | [code](aws.go)                                        |
+| Notifications                           | SNS                                     | [code](notify.go)                                     |
+| Databases and encryption at rest        | DynamoDB, KMS                           | [code](user.go)                                       |
 
 What's remarkable is how little work is required to get all functionality for our app. We don't need a framework, Platform-as-a-Service, or even any 3rd party Software-as-a-Service. And yes, we don't need servers. By standing on the shoulders of Go and AWS, all the undifferentiated heavy lifting is handled.
 

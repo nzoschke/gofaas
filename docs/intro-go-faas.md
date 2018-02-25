@@ -1,5 +1,5 @@
 # Intro to Go Functions-as-a-Service and Lambda
-## Why FaaS matters and why Go is well-suited for Lambda
+### Why FaaS matters and why Go is well-suited for Lambda
 
 ## Intro to FaaS and Serverless
 

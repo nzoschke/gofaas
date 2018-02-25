@@ -1,5 +1,5 @@
 # Go Worker Functions
-## With Lambda, S3 and CloudWatch Events
+### With Lambda, S3 and CloudWatch Events
 
 Lambda isn't just for HTTP functions. Another application of a Go Lambda function is one that we can invoke manually or automatically to do some work. To accomplish this we need the Lambda Invoke API, [CloudWatch Events](https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html) and something to work on such as an S3 bucket.
 

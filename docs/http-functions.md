@@ -1,5 +1,5 @@
 # Go HTTP Functions
-## With Lambda and API Gateway
+### With Lambda and API Gateway
 
 An obvious application of a Go Lambda function is to handle an HTTP request. To accomplish this, we need the "serverless" API Gateway service to receive HTTP requests, translate that into an event, invoke our Lambda function, take it's return value, and turn it into an HTTP response. There's a lot of cool tech and optionality behind API Gateway service, but the promise of FaaS is that we don't have to worry about it. So lets jump straight to our function.
 

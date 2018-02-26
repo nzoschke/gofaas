@@ -1,25 +1,27 @@
 # Databases and Encryption-at-Rest
 ### With Go, DynamoDB and KMS
 
-Every meaningful application has to deal with state. We introduced S3 to save reports, but what do we do for CRUD -- data we will create, read, update and delete by random access keys? SAM offers strong opinion about the solution -- a `Amazon::Serverless::SimpleTable` resource -- which is a DynamoDB table.
+Every meaningful application has to deal with state. We introduced S3 to save reports, but what do we do for CRUD -- data we will create, read, update and delete with random access? SAM offers strong opinion about the solution -- an `Amazon::Serverless::SimpleTable` resource -- which is a DynamoDB table.
 
-The choice of a datastore can make or break an application and its architecture.
+The choice of a data store can make or break an application and its architecture.
 
-Imagine what happens as our app takes off, and all of a sudden we start to get 100s of calls per second to our User API? FaaS is well-suited to this scenario -- we expect AWS to instantly scale up the 100s of Lambda functions for us. But this scenario -- 100s of clients simultaneously reading and writing data -- could pose a challenge for our database.
+Imagine what happens as our app takes off, and all of a sudden we start to get 100s of calls per second to our User API. FaaS is well-suited to this scenario -- we expect AWS to instantly scale up the 100s of Go functions for us. But this scenario -- 100s of clients simultaneously reading and writing data -- could pose a challenge for our database.
 
-PostgreSQL, one of the goto databases for web apps, may not handle 100 connections without adding connection pooling, or may require migrating data to a higher capacity server. Both are heavy operational tasks.
+PostgreSQL, one of the goto databases for web apps, may not handle 100 simultaneous connections without adding connection pooling, or may require migrating data to a higher capacity server. Both are heavy operational tasks.
 
 DynamoDB is better suited to this challenge.
 
-It is highly available (HA) out of the box, which means Amazon is constantly protecting us from a single server failure taking our data offline. It has an HTTP API, which is inheriently suitable for many clients requesting data simultaneously. It offers strong consistency, which is a killer feature for distributed systems at scale. It scales transparently. We can increase the provisioned read or write setting and the service will add capacity behind the scenes, and all the while our functions can still read and write data. It offers autoscaling. AWS will can automatically increase throughput when more read and write requests appear, and decrease it when they go away.
+It is highly available (HA) out of the box, which means Amazon is constantly protecting us from a single server failure taking our data offline. It has an HTTP API, which is inherently suitable for many clients requesting data simultaneously. It offers strong consistency, which is a killer feature for distributed systems at scale. It scales transparently, which means we can increase the provisioned read or write throughput and our functions can still read and write data while the database scales. DynamoDB even offers auto scaling, where AWS will automatically increase throughput when more read and write requests appear, and decrease it when they go away.
 
-It also poses some challenges.
+For all these reasons DynamoDB feels like a good choice for our "serverless" app.
 
-It's not as easy to use as a developer. It lacks transactions so if we need to update multiple records atomically, our code has to handle locking, updating, then unlocking. It has a simplistic indexing model so we have to design our table keys and limited indexes carefully to avoid scanning the entire table. It's scaling model isn't perfect, so there are scenarios where DynamoDB will be inefficient and expensive at medium to large scale.
+But of course it poses some challenges.
 
-All that said DynamoDB is a "Simple Table" and a good default choice to add to our app for a wide variety of use cases.
+DynamoDB not as easy to use as a developer. It lacks transactions so if we need to update multiple records atomically, our code has to handle locking, updating, then unlocking. It has a simplistic indexing model so we have to design our table keys and limited indexes carefully to avoid scanning the entire table. It's scaling model isn't perfect, so there are scenarios where DynamoDB will be inefficient and expensive at medium to large scale.
 
-Unlike datastores, the encryption strategy is uncontroversial. We opt to use the AWS Key Management Service (KMS) to encrypt data at rest.
+All that said, for many use-cases DynamoDB is indeed a "Simple Table" and a good default choice to add to our app.
+
+With any data store, the strategy for storing sensitive data like API keys, credit cards, or personal information is uncontroversial. We opt to use the AWS Key Management Service (KMS) to encrypt data at rest.
 
 ## AWS Config
 
@@ -80,7 +82,9 @@ Resources:
 ```
 > From [template.yml](template.yml)
 
-Note how we give one function a policy to encrypt and another a policy to decrypt. This is the "the principal of least priveledge". We might consider custom statements with `dynamodb:GetItem`, `dynamodb:DeleteItem`, and `dynamodb:PutItem` actions too, but we opt for the simpler template policy for now. See the [Per-Function Policies](docs/per-function-policies.md) doc for more details.
+Here we start with the lowest value for read and write capacity units to save money. But we can consider making these parameters on the stack or adding more resources to perform autoscaling ([docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html#cfn-dynamodb-table-examples-application-autoscaling))...
+
+Note how we give one function a policy to encrypt and another a policy to decrypt. This is the "the principal of least privilege". We might consider custom statements with `dynamodb:GetItem`, `dynamodb:DeleteItem`, and `dynamodb:PutItem` actions too, but we opt for the simpler template policy for now. See the [Per-Function Policies](docs/per-function-policies.md) doc for more details.
 
 ## Go Code
 
@@ -168,7 +172,7 @@ func userPut(ctx context.Context, u *User) error {
 ```
 > From [user.go](user.go)
 
-Encrypting data before saving it to the database is a security best practice called "encryption at rest". If someone was to gain access to the database or a dump of data, they would not be able to access our sensitive information without gaining additional access to KMS.
+Encrypting data before saving it to the database is a security best practice called "encryption at rest". If someone was to gain access to the database or a dump of data, they would not be able to access our sensitive information without gaining additional access to KMS. KMS makes this easy with its Encrypt and Decrypt APIs.
 
 ## Summary
 
@@ -177,7 +181,7 @@ When building an app with Go, DynamoDB and KMS we:
 - Store and access data with fast, random access
 - Save data encrypted at rest
 - Replicate our data across multiple servers transparently
-- Scale our database up without downtime
+- Scale our database up or down without downtime
 
 We don't have to:
 

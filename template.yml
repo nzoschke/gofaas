@@ -11,7 +11,7 @@ Globals:
     Environment:
       Variables:
         NOTIFICATION_TOPIC: !GetAtt NotificationTopic.TopicName
-    Handler: handler
+    Handler: main
     Runtime: go1.x
     Timeout: 5
     Tracing: Active
@@ -68,7 +68,7 @@ Resources:
 
   DashboardFunction:
     Properties:
-      CodeUri: ./handlers/dashboard/handler.zip
+      CodeUri: ./handlers/dashboard/main.zip
       Environment:
         Variables:
           CLIENT_ID: "id"
@@ -80,7 +80,7 @@ Resources:
             Path: /
           Type: Api
       FunctionName: !Sub ${AWS::StackName}-DashboardFunction
-      Handler: handler
+      Handler: main
       Policies:
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt NotificationTopic.TopicName
@@ -120,7 +120,7 @@ Resources:
 
   UserCreateFunction:
     Properties:
-      CodeUri: ./handlers/user-create/handler.zip
+      CodeUri: ./handlers/user-create/main.zip
       Environment:
         Variables:
           KEY_ID: !Ref Key
@@ -132,7 +132,7 @@ Resources:
             Path: /users
           Type: Api
       FunctionName: !Sub ${AWS::StackName}-UserCreateFunction
-      Handler: handler
+      Handler: main
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
@@ -149,7 +149,7 @@ Resources:
 
   UserDeleteFunction:
     Properties:
-      CodeUri: ./handlers/user-delete/handler.zip
+      CodeUri: ./handlers/user-delete/main.zip
       Environment:
         Variables:
           KEY_ID: !Ref Key
@@ -161,7 +161,7 @@ Resources:
             Path: /users/{id}
           Type: Api
       FunctionName: !Sub ${AWS::StackName}-UserDeleteFunction
-      Handler: handler
+      Handler: main
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
@@ -172,7 +172,7 @@ Resources:
 
   UserReadFunction:
     Properties:
-      CodeUri: ./handlers/user-read/handler.zip
+      CodeUri: ./handlers/user-read/main.zip
       Environment:
         Variables:
           KEY_ID: !Ref Key
@@ -184,7 +184,7 @@ Resources:
             Path: /users/{id}
           Type: Api
       FunctionName: !Sub ${AWS::StackName}-UserReadFunction
-      Handler: handler
+      Handler: main
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref UsersTable
@@ -197,7 +197,7 @@ Resources:
 
   UserUpdateFunction:
     Properties:
-      CodeUri: ./handlers/user-update/handler.zip
+      CodeUri: ./handlers/user-update/main.zip
       Environment:
         Variables:
           KEY_ID: !Ref Key
@@ -209,7 +209,7 @@ Resources:
             Path: /users/{id}
           Type: Api
       FunctionName: !Sub ${AWS::StackName}-UserUpdateFunction
-      Handler: handler
+      Handler: main
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
@@ -233,12 +233,12 @@ Resources:
 
   WorkerFunction:
     Properties:
-      CodeUri: ./handlers/worker/handler.zip
+      CodeUri: ./handlers/worker/main.zip
       Environment:
         Variables:
           BUCKET: !Ref Bucket
       FunctionName: !Sub ${AWS::StackName}-WorkerFunction
-      Handler: handler
+      Handler: main
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref Bucket
@@ -249,7 +249,7 @@ Resources:
 
   WorkerPeriodicFunction:
     Properties:
-      CodeUri: ./handlers/worker-periodic/handler.zip
+      CodeUri: ./handlers/worker-periodic/main.zip
       Environment:
         Variables:
           BUCKET: !Ref Bucket
@@ -260,7 +260,7 @@ Resources:
               source: ["aws.events"]
           Type: CloudWatchEvent
       FunctionName: !Sub ${AWS::StackName}-WorkerPeriodicFunction
-      Handler: handler
+      Handler: main
       Policies:
         - Statement:
             - Action:

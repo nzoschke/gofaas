@@ -3,7 +3,7 @@
 
 Traces and logs help us dig into requests, responses and errors, but they don't alert us when an error occurs. For that, we need notifications.
 
-Email and SMS notifications are available through the Simple Notification Service (SNS).
+Email and SMS notifications are easy with the Simple Notification Service (SNS).
 
 ## Go Code
 
@@ -52,9 +52,9 @@ There are a couple Go-isms to note here.
 
 The middleware technique means we don't have to change our function code at all. Handlers can always `return err` and leave it up to the middleware to publish to SNS.
 
-Also notice the use of the `errors` package and `errors.WithStack()` here and throughout our functions. This gives us high quality backtraces in our notifications.
+Also notice the use of the `errors` package and `errors.WithStack()` here and throughout our functions. This gives us high quality back traces in our logs and notifications.
 
-The `notify` function would also be a good place to send errors to Rollbar, Pagerduty, etc.
+The `notify` function would also be a good place to send errors directly to Rollbar, etc.
 
 ## AWS Config
 

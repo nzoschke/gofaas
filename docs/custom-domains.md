@@ -3,7 +3,7 @@
 
 When we are ready to take our gofaas app live, we likely want to move the API off of the `https://x19vpdk568.execute-api.us-east-1.amazonaws.com/Prod` API Gateway URL and onto our own domain, say `https://api.gofaas.net`.
 
-AWS supports this by creating a CloudFront distribution that will route requests to the API Gateway URL. The CloudFront CDN naturally supports custom certificates and domain names.
+AWS supports this by creating a CloudFront distribution that will route requests to the API Gateway URL. The CloudFront CDN naturally enables custom domain names and SSL certificates.
 
 ## AWS Config
 
@@ -73,7 +73,7 @@ If we are using Route53, this is easy to do through the UI:
 
 <p align="center"><img src="img/route53.png" alt="alt text" width="410" /></p>
 
-In this case we could consider automating DNS setup by adding an conditional `AWS::Route53::RecordSet` resource to our template too...
+In this case we could consider automating DNS setup by adding an conditional `AWS::Route53::RecordSet` resource to our template...
 
 After a few minutes we have our custom HTTPS API endpoint:
 
@@ -84,11 +84,11 @@ $ curl https://api.gofaas.net
 
 ## Summary
 
-When building an app with CloudFormation, API Gateway and CloudFront:
+When building an app with CloudFormation, API Gateway and CloudFront we can:
 
 - Serve our API from a custom domain
 - Automate cert creation and renewal
-- Distribute our API across a global CDN
+- Distribute our API through a global CDN
 
 We no longer have to worry about:
 

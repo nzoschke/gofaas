@@ -3,32 +3,26 @@
 
 As we keep adding more functions with responsibilities for various services, it can become a challenge to spot and diagnose errors.
 
-We natually will add more logging to our Go code over time.
-
-But imagine if we see error from a worker API. How do we know if error was due to:
+Imagine if we see error from a worker API. How do we know if error was due to:
 
 - AWS API Gateway internal error
 - AWS Lambda capacity problem
 - Our worker function
 - AWS S3 permission error
 
-Go on Lambda offers a new and compelling strategy for observability: tracing.
+We will naturally add more logging to our Go code over time to help understand execution. But Go on Lambda offers a new and compelling strategy for observability: tracing.
 
-Tracing is a technique that big companies like Amazon, Google and Twitter rely on to understand their large-scale distributed system.
+Tracing is a technique that big companies like Amazon, Google and Twitter rely on to understand their large-scale distributed systems.
 
-With tracing, every request that comes in is given a unique request ID. Then care is taken to pass this request ID along to every subsystem that works on the request so they can report detailed, structured information about how their success or failures in handling the request.
-
-This information is generally "segments" of work -- data with a start time, end time and other metadata like a function name, return value or error message.
+With tracing, every request that comes in is given a unique request ID. Then care is taken to pass this request ID along to every subsystem that works on the request so they can report detailed, structured information about how they handled the request. This information is reported as "segments" of work -- data with a start time, end time and other metadata like a function name, return value or error message.
 
 One system might emit segments for many short function calls, then a single long RPC call. And the system that performs the RPC call itself might emit many segments for its function calls.
 
-A centralized tracing service collects data from all the disparate systems and server and assembles them to provide a full picture of the lifecycle of the request. We can now see total response time, and in the case of a failure pinpoint exactly where it happened.
+A centralized tracing service collects data from all the disparate systems and server and assembles them to provide a full picture of the life cycle of the request. We can now see total response time, individual steps and their duration, and in the case of a failure, pinpoint exactly where it happened.
 
 ## AWS Config -- X-Ray and Lambda
 
-Tracing is a first-class concept on AWS Lambda.
-
-We can turn on "active tracing" in the SAM `Globals` section or as a property of every Lambda function:
+Tracing is a first-class concept on AWS Lambda. We can turn on "active tracing" in the SAM `Globals` section or as a property of every Lambda function:
 
 ```yaml
 Globals:
@@ -43,13 +37,15 @@ Resources:
 ```
 > From [template.yml](template.yml)
 
+When this is enabled, AWS will automatically run a X-Ray daemon for our Lambda function.
+
 ## Go Code -- Context pattern
 
 Tracing is effectively a first-class concept in Golang too.
 
-Because Go is built by Google with a goal of making distributed systems programming easy, it is well-suited for tracing. It offers something for tracing in the standard library: the [context package](https://golang.org/pkg/context/) and the Context type.
+Go was created by Google with a goal of making distributed systems programming easy, so it should come as no surprise that it well-suited for tracing. The standard library has what we need: the [context package](https://golang.org/pkg/context/) and the Context type.
 
-We may have noticed that every Lambda function has a first argument of `ctx context.Context`. We also see the ctx argument in many other Go packages like the AWS SDK. This variable provides a way to share information, like a request ID, across all our code and 3rd party libraries we use. Go opts for a variable for safety -- we can't safely share data between all the systems, we have to pass data down to them.
+We may have noticed that every Lambda function takes a first argument of `ctx context.Context`. We also see the `ctx` argument in many other Go packages like the AWS SDK. This variable provides a way to share information, like a request ID or a parent segment structure, across all our code and 3rd party libraries we use. Go opts for a variable for safety -- we can't safely share data between all the systems, we have to pass data down to them.
 
 ```go
 package gofaas
@@ -97,6 +93,8 @@ func userPut(ctx context.Context, u *User) error {
 ```
 > From [user.go](user.go)
 
+When working with the AWS SDK we make sure to use the `WithContext` methods. See the [Context Pattern added to the AWS SDK for Go](https://aws.amazon.com/blogs/developer/context-pattern-added-to-the-aws-sdk-for-go/) to learn about more ways the context pattern helps us build our app.
+
 ## Go Code -- Xray SDK
 
 Next we reach for the [aws/aws-xray-go-sdk package](https://github.com/aws/aws-xray-sdk-go). This gives us a way to generate segment data and send it to a local X-Ray daemon which will eventually forward traces to the X-Ray API.
@@ -139,22 +137,22 @@ We can also use the X-Ray SDK to trace external HTTP calls, SQL calls, or create
 
 ## Results
 
-We can browse to the X-Ray web console to view our traces.
+After we deploy the application and make some calls to the API or workers, we can browse to the X-Ray web console to view our traces:
 
 <p align="center">
   <img src="img/xray-service-map.png" alt="X-Ray Service Map" width="440" />
   <img src="img/xray-trace.png" alt="X-Ray Trace" width="440" />
 </p>
 
-The service map offers a overfiew of our app. We can see all of the calls to our functions and the AWS APIs they consume. Note that we're seeing an error with SNS calls. It turns out IAM permissions are incorrect...
+The service map offers a overview of our app. We can see all of the calls to our functions and the AWS APIs they consume. Note that we're seeing an error with SNS calls. It turns out IAM permissions are incorrect... Tracing is already helping us pinpoint problems and we haven't added a single log!
 
-The trace details offers a deep dive into a function call. We can see our function took 324ms, and spent 140ms on the KMS call and 200ms on the DynamoDB call.
+The trace details offers a deep dive into a function call. We can see our function took 324ms, and spent 140ms on the KMS call and 200ms on the DynamoDB call. This waterfall view can help us optimize our functions, which can ultimately save us money.
 
 These are powerful views into our functions with little change to the code and config.
 
 ## Go Code -- Logging
 
-Go programmers should be familiar with using logs to debug functions. It's very common to aid development and debugging with `log.Printf()` statements:
+Of course we can't ignore trusty logging to help us develop and debug Go functions. It's very common to aid development and debugging with `log.Printf()` statements:
 
 ```go
 func MyHandler(ctx context.Context, e Event) error {
@@ -167,7 +165,7 @@ func MyHandler(ctx context.Context, e Event) error {
 }
 ```
 
-It should be no surprise that Lambda supports this out of the box. Logs printed to stdout and stderr are captured and sent to CloudWatch Logs for further review.
+It should be no surprise that Lambda supports this out of the box too. Logs printed to stdout and stderr are automatically captured and sent to CloudWatch Logs for future review.
 
 ## cw log tail command
 
@@ -183,7 +181,7 @@ $ cw ls groups
 $ cw tail -f /aws/lambda/gofaas-DashboardFunction
 START RequestId: 72dceba9-1a65-11e8-b628-8b3fbdd14d50 Version: $LATEST
 END RequestId: 72dceba9-1a65-11e8-b628-8b3fbdd14d50
-REPORT RequestId: 72dceba9-1a65-11e8-b628-8b3fbdd14d50	Duration: 16.44 ms	Billed Duration: 100 ms 	Memory Size: 128 MB	Max Memory Used: 42 MB
+REPORT RequestId: 72dceba9-1a65-11e8-b628-8b3fbdd14d50  Duration: 16.44 ms  Billed Duration: 100 ms  Memory Size: 128 MB  Max Memory Used: 42 MB
 ...
 ```
 
@@ -202,7 +200,7 @@ When building an app with Go, Lambda, CloudWatch Logs and X-Ray we can:
 We don't have to:
 
 - Change our Go code
-- Monkeypatch the Go internals
+- Monkey patch the language internals
 - Manage trace or log collectors
 - Run trace or log servers
 

@@ -5,7 +5,8 @@ PKG = github.com/nzoschke/$(APP)
 app: dev
 
 clean:
-	rm -f $(wildcard handlers/*/handler*)
+	rm -f $(wildcard handlers/*/main)
+	rm -f $(wildcard handlers/*/main.zip)
 
 deploy: BUCKET = pkgs-$(shell aws sts get-caller-identity --output text --query 'Account')-$(AWS_DEFAULT_REGION)
 deploy: PARAMS ?= =
@@ -20,12 +21,12 @@ dev:
 dev-sam:
 	aws-sam-local local start-api -n env.json
 dev-watch:
-	watchexec -f "*.go" -n 'make -j handlers'
+	watchexec -f '*.go' 'make -j handlers'
 
-HANDLERS=$(addsuffix handler.zip,$(wildcard handlers/*/))
+HANDLERS=$(addsuffix main.zip,$(wildcard handlers/*/))
 handlers: $(HANDLERS)
-$(HANDLERS): handlers/%/handler.zip: *.go handlers/%/main.go
-	cd ./$(dir $@) && GOOS=linux go build -o handler . && zip -1 handler.zip handler
+$(HANDLERS): handlers/%/main.zip: *.go handlers/%/main.go
+	cd ./$(dir $@) && GOOS=linux go build -o main . && zip -1 main.zip main
 
 test:
 	go test -v ./...

@@ -53,7 +53,7 @@ This project uses :
 Install the CLI tools and Docker CE
 
 ```console
-$ brew install aws-cli go watchexec
+$ brew install awscli go watchexec
 $ go get -u github.com/awslabs/aws-sam-local
 $ open https://store.docker.com/search?type=edition&offering=community
 ```

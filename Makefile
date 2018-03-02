@@ -26,7 +26,7 @@ dev-watch:
 HANDLERS=$(addsuffix main.zip,$(wildcard handlers/*/))
 handlers: $(HANDLERS)
 $(HANDLERS): handlers/%/main.zip: *.go handlers/%/main.go
-	cd ./$(dir $@) && GOOS=linux go build -o main . && zip -1 main.zip main
+	cd ./$(dir $@) && GOOS=linux go build -o main . && zip -1 main.zip *
 
 test:
 	go test -v ./...

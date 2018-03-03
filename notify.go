@@ -48,15 +48,18 @@ func NotifyWorker(h HandlerWorker) HandlerWorker {
 }
 
 func notify(ctx context.Context, err error) {
-	topic := os.Getenv("NOTIFICATION_TOPIC")
-
-	if err == nil || topic == "" {
+	if err == nil {
 		return
 	}
 
 	subj := fmt.Sprintf("ERROR %s", os.Getenv("AWS_LAMBDA_FUNCTION_NAME"))
 	msg := fmt.Sprintf("%+v\n", err)
 	log.Printf("%s %s\n", subj, msg)
+
+	topic := os.Getenv("NOTIFICATION_TOPIC")
+	if topic == "" {
+		return
+	}
 
 	_, err = SNS().PublishWithContext(ctx, &sns.PublishInput{
 		Message:  aws.String(msg),

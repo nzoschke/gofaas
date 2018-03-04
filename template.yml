@@ -10,7 +10,7 @@ Globals:
   Function:
     Environment:
       Variables:
-        NOTIFICATION_TOPIC: !GetAtt NotificationTopic.TopicName
+        NOTIFICATION_TOPIC: !Ref NotificationTopic
     Handler: main
     Runtime: go1.x
     Timeout: 5

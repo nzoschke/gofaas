@@ -264,9 +264,12 @@ Resources:
         - Statement:
             - Action:
                 - s3:DeleteObject
-                - s3:ListObjects
               Effect: Allow
               Resource: !Sub "arn:aws:s3:::${Bucket}/*"
+            - Action:
+                - s3:ListBucket
+              Effect: Allow
+              Resource: !Sub "arn:aws:s3:::${Bucket}"
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt NotificationTopic.TopicName
       Runtime: go1.x

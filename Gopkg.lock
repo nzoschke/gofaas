@@ -3,67 +3,19 @@
 
 [[projects]]
   name = "github.com/aws/aws-lambda-go"
-  packages = [
-    "events",
-    "lambda",
-    "lambda/messages",
-    "lambdacontext"
-  ]
+  packages = ["events","lambda","lambda/messages","lambdacontext"]
   revision = "fafa7e49388b8991caf99308e80655ba91816b72"
   version = "v1.1.0"
 
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
-  packages = [
-    "aws",
-    "aws/awserr",
-    "aws/awsutil",
-    "aws/client",
-    "aws/client/metadata",
-    "aws/corehandlers",
-    "aws/credentials",
-    "aws/credentials/ec2rolecreds",
-    "aws/credentials/endpointcreds",
-    "aws/credentials/stscreds",
-    "aws/defaults",
-    "aws/ec2metadata",
-    "aws/endpoints",
-    "aws/request",
-    "aws/session",
-    "aws/signer/v4",
-    "internal/sdkrand",
-    "internal/shareddefaults",
-    "private/protocol",
-    "private/protocol/json/jsonutil",
-    "private/protocol/jsonrpc",
-    "private/protocol/query",
-    "private/protocol/query/queryutil",
-    "private/protocol/rest",
-    "private/protocol/restxml",
-    "private/protocol/xml/xmlutil",
-    "service/dynamodb",
-    "service/kms",
-    "service/s3",
-    "service/s3/s3iface",
-    "service/s3/s3manager",
-    "service/sns",
-    "service/sts"
-  ]
-  revision = "bff41fb23b7550368282029f6478819d6a99ae0f"
-  version = "v1.12.79"
+  packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/stscreds","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/sdkrand","internal/shareddefaults","private/protocol","private/protocol/json/jsonutil","private/protocol/jsonrpc","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/restxml","private/protocol/xml/xmlutil","service/dynamodb","service/kms","service/s3","service/s3/s3iface","service/s3/s3manager","service/sns","service/sts"]
+  revision = "a580f1a44c64e950056e5151797c35c65ab3cb4b"
+  version = "v1.13.9"
 
 [[projects]]
   name = "github.com/aws/aws-xray-sdk-go"
-  packages = [
-    "header",
-    "internal/plugins",
-    "pattern",
-    "resources",
-    "strategy/ctxmissing",
-    "strategy/exception",
-    "strategy/sampling",
-    "xray"
-  ]
+  packages = ["header","internal/plugins","pattern","resources","strategy/ctxmissing","strategy/exception","strategy/sampling","xray"]
   revision = "a53963a5ff9b8e55fe62e8f2f14afd6e40dcb627"
   version = "v1.0.0-rc.1"
 

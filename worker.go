@@ -10,7 +10,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/pkg/errors"
@@ -47,13 +47,27 @@ func Worker(ctx context.Context, e WorkerEvent) error {
 func WorkerPeriodic(ctx context.Context, e events.CloudWatchEvent) error {
 	log.Printf("WorkerPeriodic Event: %+v\n", e)
 
-	// FIXME: s3manager isn't context / xray compatible
-	c := s3.New(session.Must(session.NewSession()))
+	iter := s3manager.NewDeleteListIterator(
+		S3(),
+		&s3.ListObjectsInput{
+			Bucket: aws.String(os.Getenv("BUCKET")),
+		},
+		iterWithContext(ctx),
+	)
 
-	iter := s3manager.NewDeleteListIterator(c, &s3.ListObjectsInput{
-		Bucket: aws.String(os.Getenv("BUCKET")),
-	})
-
-	err := s3manager.NewBatchDeleteWithClient(c).Delete(ctx, iter)
+	err := s3manager.NewBatchDeleteWithClient(S3()).Delete(ctx, iter)
 	return errors.WithStack(err)
+}
+
+// iteratorSetContext sets context on the list request
+// see https://github.com/aws/aws-sdk-go/issues/1790
+func iterWithContext(ctx context.Context) func(*s3manager.DeleteListIterator) {
+	return func(i *s3manager.DeleteListIterator) {
+		nr := i.Paginator.NewRequest
+		i.Paginator.NewRequest = func() (*request.Request, error) {
+			req, err := nr()
+			req.SetContext(ctx)
+			return req, err
+		}
+	}
 }

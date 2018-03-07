@@ -256,9 +256,8 @@ Resources:
       Events:
         Request:
           Properties:
-            Pattern:
-              source: ["aws.events"]
-          Type: CloudWatchEvent
+            Schedule: rate(1 day)
+          Type: Schedule
       FunctionName: !Sub ${AWS::StackName}-WorkerPeriodicFunction
       Handler: main
       Policies:
@@ -272,23 +271,5 @@ Resources:
             TopicName: !GetAtt NotificationTopic.TopicName
       Runtime: go1.x
     Type: AWS::Serverless::Function
-
-  WorkerPeriodicPermission:
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref WorkerPeriodicFunction
-      Principal: events.amazonaws.com
-      SourceArn: !GetAtt WorkerPeriodicRule.Arn
-    Type: AWS::Lambda::Permission
-
-  WorkerPeriodicRule:
-    Properties:
-      Description: ScheduledRule
-      ScheduleExpression: "rate(1 day)"
-      State: ENABLED
-      Targets:
-        - Arn: !GetAtt WorkerPeriodicFunction.Arn
-          Id: WorkerPeriodicFunction
-    Type: AWS::Events::Rule
 
 Transform: AWS::Serverless-2016-10-31

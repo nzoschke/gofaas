@@ -100,44 +100,28 @@ Resources:
       Events:
         Request:
           Properties:
-            Pattern:
-              source: ["aws.events"]
-          Type: CloudWatchEvent
+            Schedule: rate(1 day)
+          Type: Schedule
       Handler: main
       Policies:
         - Statement:
             - Action:
                 - s3:DeleteObject
-                - s3:ListObjects
               Effect: Allow
               Resource: !Sub "arn:aws:s3:::${Bucket}/*"
+            - Action:
+                - s3:ListBucket
+              Effect: Allow
+              Resource: !Sub "arn:aws:s3:::${Bucket}"
       Runtime: go1.x
       Timeout: 15
     Type: AWS::Serverless::Function
-
-  WorkerPeriodicPermission:
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref WorkerPeriodicFunction
-      Principal: events.amazonaws.com
-      SourceArn: !GetAtt WorkerPeriodicRule.Arn
-    Type: AWS::Lambda::Permission
-
-  WorkerPeriodicRule:
-    Properties:
-      Description: ScheduledRule
-      ScheduleExpression: "rate(1 day)"
-      State: ENABLED
-      Targets:
-        - Arn: !GetAtt WorkerPeriodicFunction.Arn
-          Id: WorkerPeriodicFunction
-    Type: AWS::Events::Rule
 ```
 > From [template.yml](template.yml)
 
-Note the `rate(1 day)` ScheduleExpression. We could make this more frequent with `rate(1 minute)` or more specific with `cron(0 12 * * ? *)` (every day at 12). When we deploy this AWS will automatically invoke our function on this schedule.
+Note the `rate(1 day)` ScheduleExpression. We could make this more frequent with `rate(1 minute)` or more specific with `cron(0 12 * * ? *)` (every day at 12). When we deploy this AWS will automatically invoke our function on this schedule. See the [CloudWatch Schedule Expressions guide](https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html) for more details.
 
-Also note the specific policy. At the time of writing, the simpler `S3CrudPolicy` doesn't actually add a delete permission, so we have to take matters into our own hands. For further reading check out the [per-function policies](docs/per-function-policies.md) doc.
+Also note the specific policy. At the time of writing, the simpler `S3CrudPolicy` doesn't actually add a delete permission, so we take matters into our own hands. We aim for the least privilege, so we give our function a single action on the bucket (list), and a single action on its contents (delete). For further reading check out the [per-function policies](docs/per-function-policies.md) doc.
 
 ## Package and Deploy
 
@@ -183,9 +167,9 @@ REPORT RequestId: c96123d4-1727-11e8-b0e4-27c53f455614  Duration: 144.81 ms  Bil
 When building worker functions we:
 
 - Design custom events
-- Write Go funcs for the events and perform work
+- Configure scheduled events
 - Add a storage service to our stack and policies for our functions
-- Write AWS config for scheduled CloudWatch events
+- Write Go funcs for the events that perform work
 
 We no longer have to worry about:
 

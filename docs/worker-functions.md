@@ -1,7 +1,7 @@
 # Go Worker Functions
 ### With Lambda, S3 and CloudWatch Events
 
-Lambda isn't just for HTTP functions. Another application of a Go Lambda function is one that we can invoke manually or automatically to do some work. To accomplish this we need the Lambda Invoke API, [CloudWatch Events](https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html) and something to work on such as an S3 bucket.
+Lambda isn't just for HTTP functions. Another application of a Go Lambda function is one that we will invoke manually or automatically to do some work. To accomplish this we need something to work against such as an S3 bucket, and the the Lambda Invoke API or [CloudWatch Events](https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html) to trigger our worker.
 
 ## Go Code
 
@@ -21,7 +21,7 @@ type WorkerEvent struct {
 func Worker(ctx context.Context, e WorkerEvent) error {
 	// perform work here
 
-  e.TimeEnd = time.Now()
+	e.TimeEnd = time.Now()
 	b, err := json.Marshal(e)
 	if err != nil {
 		return errors.WithStack(err)
@@ -74,14 +74,13 @@ Next, we write another function that cleans up the bucket. This will be called a
 import "github.com/aws/aws-lambda-go/events"
 
 func WorkerPeriodic(ctx context.Context, e events.CloudWatchEvent) error {
-	log.Printf("WorkerPeriodic Event: %+v\n", e)
-
 	iter := s3manager.NewDeleteListIterator(S3, &s3.ListObjectsInput{
 		Bucket: aws.String(os.Getenv("BUCKET")),
 	})
 
 	err := s3manager.NewBatchDeleteWithClient(S3).Delete(ctx, iter)
 	return errors.WithStack(err)
+}
 ```
 > From [worker.go](worker.go)
 
@@ -132,6 +131,7 @@ From here we can assume we have these programs and a single command to deploy:
 ```console
 $ make deploy
 cd ./handlers/worker && GOOS=linux go build...
+cd ./handlers/worker-periodic && GOOS=linux go build...
 aws cloudformation package ...
 aws cloudformation deploy ...
 ```
@@ -139,10 +139,12 @@ aws cloudformation deploy ...
 Finally we can invoke our function manually:
 
 ```console
-$ aws lambda invoke --function-name gofaas-WorkerFunction --log-type Tail --output text --query 'LogResult' out.log | base64 -D
+$ aws lambda invoke --function-name gofaas-WorkerFunction \
+  --payload '{"time_start": "2018-02-21T15:00:43.511Z"}'  \
+  --log-type Tail --output text --query 'LogResult' out.log | base64 -D
 
 START RequestId: 0bb47628-1718-11e8-ad73-c58e72b8826c Version: $LATEST
-2018/02/21 15:01:07 Worker Event: {SourceIP: TimeEnd:0001-01-01 00:00:00 +0000 UTC TimeStart:0001-01-01 00:00:00 +0000 UTC}
+2018/02/21 15:01:07 Worker Event: {SourceIP: TimeEnd:0001-01-01 00:00:00 +0000 UTC TimeStart:2018-02-21 15:00:43.511 +0000 UTC}
 END RequestId: 0bb47628-1718-11e8-ad73-c58e72b8826c
 REPORT RequestId: 0bb47628-1718-11e8-ad73-c58e72b8826c  Duration: 11.11 ms  Billed Duration: 100 ms  Memory Size: 128 MB  Max Memory Used: 41 MB
 ```
@@ -155,11 +157,12 @@ $ aws logs filter-log-events --log-group-name '/aws/lambda/gofaas-WorkerPeriodic
 START RequestId: ae1b5451-1727-11e8-991a-85c308f12bbb Version: $LATEST
 2018/02/23 03:01:43 WorkerPeriodic Event: ...
 END RequestId: ae1b5451-1727-11e8-991a-85c308f12bbb
-REPORT RequestId: ae1b5451-1727-11e8-991a-85c308f12bbb  Duration: 1236.68 ms  Billed Duration: 1300 ms  Memory Size: 128 MB  Max Memory Used: 45 MB	
+REPORT RequestId: ae1b5451-1727-11e8-991a-85c308f12bbb  Duration: 1236.68 ms  Billed Duration: 1300 ms  Memory Size: 128 MB  Max Memory Used: 45 MB
+
 START RequestId: c96123d4-1727-11e8-b0e4-27c53f455614 Version: $LATEST
 2018/02/24 03:01:41 WorkerPeriodic Event: ...
 END RequestId: c96123d4-1727-11e8-b0e4-27c53f455614
-REPORT RequestId: c96123d4-1727-11e8-b0e4-27c53f455614  Duration: 144.81 ms  Billed Duration: 200 ms  Memory Size: 128 MB  Max Memory Used: 46 MB	
+REPORT RequestId: c96123d4-1727-11e8-b0e4-27c53f455614  Duration: 144.81 ms  Billed Duration: 200 ms  Memory Size: 128 MB  Max Memory Used: 46 MB
 ```
 
 ## Summary

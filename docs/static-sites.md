@@ -63,7 +63,9 @@ Outputs:
       !If
       - WebDomainNameSpecified
       - !Sub https://${WebDomainName}
-      - !Join [., [!Sub "http://${WebBucket}", !FindInMap [RegionMap, !Ref 'AWS::Region', S3WebsiteEndpoint]]]
+      - !Sub
+        - http://${WebBucket}.${Endpoint}
+        - {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}
 
 Parameters:
   WebDomainName:
@@ -126,7 +128,9 @@ Resources:
               HTTPPort: 80
               HTTPSPort: 443
               OriginProtocolPolicy: http-only
-            DomainName: !Join [., [!Ref WebDomainName, !FindInMap [RegionMap, !Ref 'AWS::Region', S3WebsiteEndpoint]]]
+            DomainName: !Sub
+              - ${WebBucket}.${Endpoint}
+              - {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}
             Id: !Ref WebBucket
         PriceClass: PriceClass_All
         ViewerCertificate:

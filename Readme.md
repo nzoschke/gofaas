@@ -23,18 +23,20 @@ It demonstrates:
 | [Development, packaging and deployment][3]   | make, go, aws-sam-local, CloudFormation | [⚙️](Makefile)     |
 | [Per-function environment and policies][4]   | Lambda, IAM                             | [⚙️](template.yml) |
 | [Custom domains][5]                          | CloudFront, ACM                         | [⚙️](template.yml) |
-| [Function traces and logs][6]                | CloudWatch Logs, X-Ray, AWS SDKs for Go | [💾](aws.go)       |
-| [Notifications][7]                           | SNS                                     | [💾](notify.go)    |
-| [Databases and encryption at rest][8]        | DynamoDB, KMS                           | [💾](user.go)      |
+| [Static web content][6]                      | S3, CloudFront, ACM                     | [⚙️](template.yml) |
+| [Function traces and logs][7]                | CloudWatch Logs, X-Ray, AWS SDKs for Go | [💾](aws.go)       |
+| [Notifications][8]                           | SNS                                     | [💾](notify.go)    |
+| [Databases and encryption at rest][9]        | DynamoDB, KMS                           | [💾](user.go)      |
 
 [1]: docs/http-functions.md
 [2]: docs/worker-functions.md
 [3]: docs/dev-package-deploy.md
 [4]: docs/per-function-policies.md
 [5]: docs/custom-domains.md
-[6]: docs/traces-logs.md
-[7]: docs/notifications.md
-[8]: docs/databases-encryption.md
+[6]: docs/static-sites.md
+[7]: docs/traces-logs.md
+[8]: docs/notifications.md
+[9]: docs/databases-encryption.md
 
 What's remarkable is how little work is required to get all functionality for our app. We don't need a framework, platform-as-a-service, or even any 3rd party software-as-a-service. And no, we don't need servers. By standing on the shoulders of Go and AWS, all the undifferentiated heavy lifting is managed for us.
 

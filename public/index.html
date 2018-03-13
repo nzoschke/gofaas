@@ -1,0 +1,25 @@
+<!-- Borrowed from https://vuejs.org/v2/guide/#Getting-Started -->
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>My first gofaas/Vue app</title>
+    <script src="https://unpkg.com/vue"></script>
+</head>
+
+<body>
+    <div id="app">
+        {{ message }}
+    </div>
+
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                message: 'Goodbye servers!'
+            }
+        })
+    </script>
+</body>
+
+</html>

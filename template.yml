@@ -5,6 +5,7 @@ Conditions:
   ApiDomainNameSpecified: !Not [!Equals [!Ref ApiDomainName, ""]]
   NotificationEmailSpecified: !Not [!Equals [!Ref NotificationEmail, ""]]
   NotificationNumberSpecified: !Not [!Equals [!Ref NotificationNumber, ""]]
+  WebDomainNameSpecified: !Not [!Equals [!Ref WebDomainName, ""]]
 
 Globals:
   Function:
@@ -15,6 +16,33 @@ Globals:
     Runtime: go1.x
     Timeout: 5
     Tracing: Active
+
+Mappings:
+  RegionMap:
+    ap-northeast-1:
+      S3HostedZoneId: Z2M4EHUR26P7ZW
+      S3WebsiteEndpoint: s3-website-ap-northeast-1.amazonaws.com
+    ap-southeast-1:
+      S3HostedZoneId: Z3O0J2DXBE1FTB
+      S3WebsiteEndpoint: s3-website-ap-southeast-1.amazonaws.com
+    ap-southeast-2:
+      S3HostedZoneId: Z1WCIGYICN2BYD
+      S3WebsiteEndpoint: s3-website-ap-southeast-2.amazonaws.com
+    eu-west-1:
+      S3HostedZoneId: Z1BKCTXD74EZPE
+      S3WebsiteEndpoint: s3-website-eu-west-1.amazonaws.com
+    sa-east-1:
+      S3HostedZoneId: Z31GFT0UA1I2HV
+      S3WebsiteEndpoint: s3-website-sa-east-1.amazonaws.com
+    us-east-1:
+      S3HostedZoneId: Z3AQBSTGFYJSTF
+      S3WebsiteEndpoint: s3-website-us-east-1.amazonaws.com
+    us-west-1:
+      S3HostedZoneId: Z2F56UZL2M1ACD
+      S3WebsiteEndpoint: s3-website-us-west-1.amazonaws.com
+    us-west-2:
+      S3HostedZoneId: Z3BJ6K6RIION7M
+      S3WebsiteEndpoint: s3-website-us-west-2.amazonaws.com
 
 Outputs:
   ApiDistributionDomainName:
@@ -28,9 +56,23 @@ Outputs:
       - !Sub https://${ApiDomainName}
       - !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ServerlessRestApiProdStage}"
 
+  WebDistributionDomainName:
+    Condition: WebDomainNameSpecified
+    Value: !GetAtt WebDistribution.DomainName
+
+  WebUrl:
+    Value:
+      !If
+      - WebDomainNameSpecified
+      - !Sub https://${WebDomainName}
+      - !Sub
+        - http://${WebBucket}.${Endpoint}
+        - {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}
+
 Parameters:
   ApiDomainName:
     Default: ""
+    Description: "Domain or subdomain for the API Gateway distribution, e.g. api.gofaas.net"
     Type: String
 
   NotificationEmail:
@@ -39,6 +81,11 @@ Parameters:
 
   NotificationNumber:
     Default: ""
+    Type: String
+
+  WebDomainName:
+    Default: ""
+    Description: "Domain or subdomain for the static website distribution, e.g. www.gofaas.net"
     Type: String
 
 Resources:
@@ -230,6 +277,70 @@ Resources:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
     Type: AWS::Serverless::SimpleTable
+
+  WebBucket:
+    DeletionPolicy: Retain
+    Properties:
+      AccessControl: PublicRead
+      BucketName: !If [WebDomainNameSpecified, !Ref WebDomainName, !Sub "${AWS::StackName}-webbucket-${AWS::AccountId}"]
+      WebsiteConfiguration:
+        ErrorDocument: 404.html
+        IndexDocument: index.html
+    Type: AWS::S3::Bucket
+
+  WebBucketPolicy:
+    Properties:
+      Bucket: !Ref WebBucket
+      PolicyDocument:
+        Statement:
+          - Action: s3:GetObject
+            Effect: Allow
+            Principal: "*"
+            Resource: !Sub arn:aws:s3:::${WebBucket}/*
+            Sid: PublicReadForGetBucketObjects
+    Type: AWS::S3::BucketPolicy
+
+  WebCertificate:
+    Condition: WebDomainNameSpecified
+    Properties:
+      DomainName: !Ref WebDomainName
+    Type: AWS::CertificateManager::Certificate
+
+  WebDistribution:
+    Condition: WebDomainNameSpecified
+    Properties:
+      DistributionConfig:
+        Aliases:
+          - !Ref WebDomainName
+        Comment: !Sub Distribution for ${WebBucket}
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          ForwardedValues:
+            Cookies:
+              Forward: none
+            QueryString: true
+          TargetOriginId: !Ref WebBucket
+          ViewerProtocolPolicy: redirect-to-https
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http2
+        Origins:
+          - CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginProtocolPolicy: http-only
+            DomainName: !Sub
+              - ${WebBucket}.${Endpoint}
+              - {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}
+            Id: !Ref WebBucket
+        PriceClass: PriceClass_All
+        ViewerCertificate:
+          AcmCertificateArn: !Ref WebCertificate
+          SslSupportMethod: sni-only
+    Type: AWS::CloudFront::Distribution
 
   WorkerFunction:
     Properties:

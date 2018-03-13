@@ -16,6 +16,13 @@ deploy: handlers
 	aws cloudformation deploy --capabilities CAPABILITY_NAMED_IAM --parameter-overrides $(PARAMS) --template-file out.yml --stack-name $(APP)
 	aws cloudformation describe-stacks --output text --query 'Stacks[*].Outputs' --stack-name $(APP)
 
+deploy-static: BUCKET=$(shell aws cloudformation describe-stack-resources --output text --query 'StackResources[?LogicalResourceId==`WebBucket`].{Id:PhysicalResourceId}' --stack-name $(APP))
+deploy-static: DIST=$(shell aws cloudformation describe-stack-resources --output text --query 'StackResources[?LogicalResourceId==`WebDistribution`].{Id:PhysicalResourceId}' --stack-name $(APP))
+deploy-static: public/index.html
+	aws s3 sync public s3://$(BUCKET)/
+	[ -n "$(DIST)" ] && aws cloudfront create-invalidation --distribution-id $(DIST) --paths '/*' || true
+	aws cloudformation describe-stacks --output text --query 'Stacks[*].Outputs' --stack-name $(APP)
+
 dev:
 	make -j dev-watch dev-sam
 dev-sam:

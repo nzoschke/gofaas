@@ -173,7 +173,7 @@ Sure enough we can access it over HTTP:
 ```shell
 $ curl http://gofaas-webbucket-572007530218.s3-website-us-east-1.amazonaws.com/
 ...
-<p>Hello world! This is HTML5 Boilerplate.</p>
+<title>My first gofaas/Vue app</title>
 ```
 
 ## Deploy Custom Domain
@@ -189,6 +189,23 @@ WebDistributionDomainName  d2bwnae7bzw1t6.cloudfront.net
 WebUrl                     https://www.gofaas.net
 ```
 
+Note that this can take 10 to 20 minutes to set up the global infrastructure for our static site. Also note that ACM will send an email to the domain owner (e.g. admin@gofaas.net) who must click through the approval to create the certificate. See the [ACM email validation](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-validate-email.html) guide for more information.
+
+Once the CDN is in place, we can sync content to the S3 bucket the same way, but we may need to invalidate content cached in the CDN to immediately see the latest content:
+
+```shell
+$ aws s3 sync public s3://gofaas-webbucket-572007530218/
+$ aws cloudfront create-invalidation --distribution-id E2YL0GMGANCGMA --paths '/*'
+```
+
+Sure enough we can access our content via the CDN:
+
+```shell
+$ curl https://d2bwnae7bzw1t6.cloudfront.net/
+...
+<title>My first gofaas/Vue app</title>
+```
+
 ## DNS
 
 The final step is to set up a DNS CNAME from our `WebDomainName` parameter (e.g. `www.gofaas.net`) to the new `WebDistributionDomainName` output (e.g. `d2bwnae7bzw1t6.cloudfront.net`).
@@ -197,7 +214,7 @@ If we are using Route53, this is easy to do through the UI:
 
 <p align="center"><img src="img/route53.png" alt="alt text" width="410" /></p>
 
-In this case we could consider automating DNS setup by adding an conditional `AWS::Route53::RecordSet` resource to our template...
+In this case we could consider automating DNS setup by adding an conditional `AWS::Route53::RecordSet` resource to our template. We could also consider using [ACM DNS validation](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-validate-dns.html) to fully automate the certificate.
 
 After a few minutes we have our custom HTTPS API endpoint:
 

@@ -137,8 +137,6 @@ Resources:
           AcmCertificateArn: !Ref WebCertificate
           SslSupportMethod: sni-only
     Type: AWS::CloudFront::Distribution
-
-Transform: AWS::Serverless-2016-10-31
 ```
 > From [template.yml](template.yml)
 
@@ -154,7 +152,8 @@ $ aws cloudformation deploy --stack-name gofaas \
     --capabilities CAPABILITY_NAMED_IAM --template-file out.yml
 Waiting for stack create/update to complete
 
-$ aws cloudformation describe-stacks --output text --query 'Stacks[*].Outputs' --stack-name gofaas
+$ aws cloudformation describe-stacks --stack-name gofaas \
+    --output text --query 'Stacks[*].Outputs'
 WebUrl	http://gofaas-webbucket-572007530218.s3-website-us-east-1.amazonaws.com
 ```
 > From [Makefile](Makefile)
@@ -181,10 +180,12 @@ $ curl http://gofaas-webbucket-572007530218.s3-website-us-east-1.amazonaws.com/
 Now we can re-deploy the config with our domain name to create the certificate and CDN:
 
 ```shell
-aws cloudformation deploy --parameter-overrides WebDomainName=www.gofaas.net \
-    --capabilities CAPABILITY_NAMED_IAM --template-file out.yml --stack-name gofaas
+aws cloudformation deploy  --stack-name gofaas         \
+    --parameter-overrides WebDomainName=www.gofaas.net \
+    --capabilities CAPABILITY_NAMED_IAM --template-file out.yml
 
-$ aws cloudformation describe-stacks --output text --query 'Stacks[*].Outputs' --stack-name gofaas
+$ aws cloudformation describe-stacks --stack-name gofaas \
+    --output text --query 'Stacks[*].Outputs'
 WebDistributionDomainName  d2bwnae7bzw1t6.cloudfront.net
 WebUrl                     https://www.gofaas.net
 ```
@@ -193,8 +194,8 @@ Note that this can take 10 to 20 minutes to set up the global infrastructure for
 
 Once the CDN is in place, we can sync content to the S3 bucket the same way, but we may need to invalidate content cached in the CDN to immediately see the latest content:
 
-```shell
-$ aws s3 sync public s3://gofaas-webbucket-572007530218/
+```console
+$ aws s3 sync public s3://www.gofaas.net/
 $ aws cloudfront create-invalidation --distribution-id E2YL0GMGANCGMA --paths '/*'
 ```
 
@@ -216,7 +217,7 @@ If we are using Route53, this is easy to do through the UI:
 
 In this case we could consider automating DNS setup by adding an conditional `AWS::Route53::RecordSet` resource to our template. We could also consider using [ACM DNS validation](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-validate-dns.html) to fully automate the certificate.
 
-After a few minutes we have our custom HTTPS API endpoint:
+After a few minutes we have our custom HTTPS endpoint:
 
 ```shell
 $ curl https://www.gofaas.net

@@ -5,10 +5,10 @@ Conditions:
   ApiDomainNameSpecified: !Not [!Equals [!Ref ApiDomainName, ""]]
   AuthDomainNameSpecified: !Not [!Equals [!Ref AuthDomainName, ""]]
   AuthHashKeySpecified: !Not [!Equals [!Ref AuthHashKey, ""]]
-  OAuthClientIdSpecified: !Not [!Equals [!Ref OAuthClientId, ""]]
-  OAuthClientSecretSpecified: !Not [!Equals [!Ref OAuthClientSecret, ""]]
   NotificationEmailSpecified: !Not [!Equals [!Ref NotificationEmail, ""]]
   NotificationNumberSpecified: !Not [!Equals [!Ref NotificationNumber, ""]]
+  OAuthClientIdSpecified: !Not [!Equals [!Ref OAuthClientId, ""]]
+  OAuthClientSecretSpecified: !Not [!Equals [!Ref OAuthClientSecret, ""]]
   WebDomainNameSpecified: !Not [!Equals [!Ref WebDomainName, ""]]
   WebDomainNameUnspecified: !Equals [!Ref WebDomainName, ""]
 
@@ -75,6 +75,11 @@ Outputs:
         - {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}
 
 Parameters:
+  ApiDomainName:
+    Default: ""
+    Description: "Domain or subdomain for the API Gateway distribution, e.g. api.gofaas.net"
+    Type: String
+
   AuthDomainName:
     Default: ""
     Description: "The domain to restrict OAuth profiles to, e.g. gofaas.net"
@@ -86,6 +91,14 @@ Parameters:
     NoEcho: true
     Type: String
 
+  NotificationEmail:
+    Default: ""
+    Type: String
+
+  NotificationNumber:
+    Default: ""
+    Type: String
+
   OAuthClientId:
     Default: ""
     Description: "The Google OAuth 2.0 web app client id"
@@ -95,19 +108,6 @@ Parameters:
     Default: ""
     Description: "The Google OAuth 2.0 web app client secret"
     NoEcho: true
-    Type: String
-
-  ApiDomainName:
-    Default: ""
-    Description: "Domain or subdomain for the API Gateway distribution, e.g. api.gofaas.net"
-    Type: String
-
-  NotificationEmail:
-    Default: ""
-    Type: String
-
-  NotificationNumber:
-    Default: ""
     Type: String
 
   WebDomainName:
@@ -321,7 +321,7 @@ Resources:
       AssumeRolePolicyDocument:
         Statement:
           - Action:
-            - sts:AssumeRole
+              - sts:AssumeRole
             Effect: Allow
             Principal:
               Service:
@@ -332,16 +332,16 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
-      Policies:
-        - PolicyName: SSM
-          PolicyDocument:
-            Statement:
-            - Action: ssm:GetParameters
-              Effect: Allow
-              Resource:
-                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*
-            Version: 2012-10-17
       Path: /
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action: ssm:GetParameters
+                Effect: Allow
+                Resource:
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*
+            Version: 2012-10-17
+          PolicyName: SSM
     Type: AWS::IAM::Role
 
   WebAuthParameterAuthDomainName:
@@ -444,10 +444,10 @@ Resources:
         Enabled: true
         HttpVersion: http2
         Origins:
-          - S3OriginConfig:
-              OriginAccessIdentity: !Sub origin-access-identity/cloudfront/${WebOriginAccessIdentity}
-            DomainName: !Sub ${WebBucket}.s3.amazonaws.com
+          - DomainName: !Sub ${WebBucket}.s3.amazonaws.com
             Id: !Ref WebBucket
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub origin-access-identity/cloudfront/${WebOriginAccessIdentity}
         PriceClass: PriceClass_All
         ViewerCertificate:
           AcmCertificateArn: !Ref WebCertificate

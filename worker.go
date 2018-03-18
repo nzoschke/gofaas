@@ -34,7 +34,7 @@ func WorkCreate(ctx context.Context, e events.APIGatewayProxyRequest) (events.AP
 	}
 
 	out, err := Lambda().InvokeWithContext(ctx, &lambda.InvokeInput{
-		FunctionName:   aws.String("WORKER_FUNCTION_NAME"),
+		FunctionName:   aws.String(os.Getenv("WORKER_FUNCTION_NAME")),
 		InvocationType: aws.String("Event"), // async
 	})
 	if err != nil {

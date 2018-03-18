@@ -9,17 +9,11 @@
 
 <body>
     <div id="app">
-        {{ message }}
+        <p>Hello {{ claims.sub }}! {{ message }}</p>
+        <button v-on:click="putWork">Do some work</button>
+        <p>{{ results }}</p>
     </div>
-
-    <script>
-        var app = new Vue({
-            el: '#app',
-            data: {
-                message: 'Goodbye servers!'
-            }
-        })
-    </script>
 </body>
 
+<script src="js/app.js"></script>
 </html>

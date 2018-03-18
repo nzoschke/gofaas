@@ -13,6 +13,10 @@ Conditions:
   WebDomainNameUnspecified: !Equals [!Ref WebDomainName, ""]
 
 Globals:
+  Api:
+    Cors:
+      AllowHeaders: "'Accept, Authorization, Content-Type'"
+      AllowOrigin: "'https://private.gofaas.net'"
   Function:
     Environment:
       Variables:

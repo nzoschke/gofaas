@@ -11,8 +11,10 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
@@ -22,6 +24,30 @@ type WorkerEvent struct {
 	SourceIP  string    `json:"source_ip"`
 	TimeEnd   time.Time `json:"time_end"`
 	TimeStart time.Time `json:"time_start"`
+}
+
+// WorkCreate invokes the worker func
+func WorkCreate(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	r, _, err := JWTClaims(e, &jwt.StandardClaims{})
+	if err != nil {
+		return r, nil
+	}
+
+	out, err := Lambda().InvokeWithContext(ctx, &lambda.InvokeInput{
+		FunctionName:   aws.String("WORKER_FUNCTION_NAME"),
+		InvocationType: aws.String("Event"), // async
+	})
+	if err != nil {
+		return responseEmpty, errors.WithStack(err)
+	}
+
+	b, err := json.Marshal(out)
+	if err != nil {
+		return responseEmpty, errors.WithStack(err)
+	}
+
+	r.Body = string(b)
+	return r, nil
 }
 
 // Worker is invoked directly to perform work then upload a report to S3

@@ -461,6 +461,33 @@ Resources:
         Comment: !Ref WebBucket
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
 
+  WorkCreateFunction:
+    Properties:
+      CodeUri: ./handlers/work-create/main.zip
+      Environment:
+        Variables:
+          AUTH_HASH_KEY: !Ref AuthHashKey
+          WORKER_FUNCTION_NAME: !Ref WorkerFunction
+      Events:
+        Request:
+          Properties:
+            Method: POST
+            Path: /work
+          Type: Api
+      FunctionName: !Sub ${AWS::StackName}-WorkCreateFunction
+      Handler: main
+      Policies:
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt NotificationTopic.TopicName
+        - Statement:
+            - Action:
+                - lambda:InvokeFunction
+              Effect: Allow
+              Resource: !GetAtt WorkerFunction.Arn
+          Version: 2012-10-17
+      Runtime: go1.x
+    Type: AWS::Serverless::Function
+
   WorkerFunction:
     Properties:
       CodeUri: ./handlers/worker/main.zip

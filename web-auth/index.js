@@ -1,8 +1,11 @@
 "use strict";
-var AWS = require("aws-sdk");
+var AWSXRay = require("aws-xray-sdk");
+var AWS = AWSXRay.captureAWS(require("aws-sdk"));
 var GoogleStrategy = require("passport-google-oauth20").Strategy;
 var jwt = require("jwt-simple");
 var querystring = require("querystring");
+
+AWSXRay.captureHTTPsGlobal(require("http"));
 
 // global var reused across invocations
 var Params = {

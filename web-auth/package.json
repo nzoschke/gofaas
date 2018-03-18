@@ -4,6 +4,7 @@
   "description": "Auth via Lambda @ Edge",
   "main": "index.js",
   "dependencies": {
+    "aws-xray-sdk": "^1.2.0",
     "jwt-simple": "^0.5.1",
     "passport-google-oauth20": "^1.0.0"
   },

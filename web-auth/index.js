@@ -104,13 +104,13 @@ var auth = (request, callback) => {
         callback(null, responseRedirect(url));
     };
 
-    s.success = (info) => {
+    s.success = (profile) => {
         var exp = new Date(new Date().getTime() + 86400000); // 1 day from now
         var key = new Buffer(Params.AuthHashKey, "base64");
 
         var token = jwt.encode({
             exp: Math.floor(exp / 1000),
-            sub: info.displayName,
+            sub: profile.emails[0].value,
         }, key);
 
         callback(null, responseCookie(token, exp, `https://${host}/`));

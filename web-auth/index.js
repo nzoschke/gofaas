@@ -103,11 +103,12 @@ var auth = (request, callback) => {
 
     s.success = (info) => {
         var exp = new Date(new Date().getTime() + 86400000); // 1 day from now
+        var key = new Buffer(Params.AuthHashKey, "base64");
 
         var token = jwt.encode({
             exp: Math.floor(exp / 1000),
             sub: info.displayName,
-        }, Params.AuthHashKey);
+        }, key);
 
         callback(null, responseCookie(token, exp, `https://${host}/`));
     };
@@ -163,7 +164,8 @@ exports.handler = (event, context, callback) => {
             // if token is valid make original request
             // if invalid call middleware
             try {
-                jwt.decode(requestCookie(request, "access_token"), Params.AuthHashKey);
+                var key = new Buffer(Params.AuthHashKey, "base64");
+                jwt.decode(requestCookie(request, "access_token"), key);
                 callback(null, request);
             }
             catch (err) {

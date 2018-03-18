@@ -304,6 +304,45 @@ Resources:
         WriteCapacityUnits: 1
     Type: AWS::Serverless::SimpleTable
 
+  WebAuthFunction:
+    Properties:
+      AutoPublishAlias: Live
+      CodeUri: ./web-auth/index.zip
+      Environment: !Ref AWS::NoValue
+      FunctionName: !Sub ${AWS::StackName}-WebAuthFunction
+      Handler: index.handler
+      Role: !GetAtt WebAuthFunctionRole.Arn
+      Runtime: nodejs6.10
+    Type: AWS::Serverless::Function
+
+  WebAuthFunctionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+            - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - edgelambda.amazonaws.com
+                - lambda.amazonaws.com
+            Sid: AllowLambdaServiceToAssumeRole
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+      Policies:
+        - PolicyName: SSM
+          PolicyDocument:
+            Statement:
+            - Action: ssm:GetParameters
+              Effect: Allow
+              Resource:
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*
+            Version: 2012-10-17
+      Path: /
+    Type: AWS::IAM::Role
+
   WebAuthParameterAuthDomainName:
     Condition: AuthDomainNameSpecified
     Properties:
@@ -380,6 +419,9 @@ Resources:
             Cookies:
               Forward: none
             QueryString: true
+          LambdaFunctionAssociations:
+            - EventType: viewer-request
+              LambdaFunctionARN: !Ref WebAuthFunction.Version
           TargetOriginId: !Ref WebBucket
           ViewerProtocolPolicy: redirect-to-https
         DefaultRootObject: index.html

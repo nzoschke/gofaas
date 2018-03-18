@@ -9,6 +9,10 @@ clean:
 	rm -f $(wildcard handlers/*/main.zip)
 	rm -f web-auth/index.zip
 
+dep:
+	go get -u github.com/golang/dep/cmd/dep
+	dep ensure
+
 deploy: BUCKET = pkgs-$(shell aws sts get-caller-identity --output text --query 'Account')-$(AWS_DEFAULT_REGION)
 deploy: PARAMS ?= =
 deploy: handlers web-auth/index.zip

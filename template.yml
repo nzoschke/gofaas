@@ -60,6 +60,27 @@ Mappings:
       S3HostedZoneId: Z3BJ6K6RIION7M
       S3WebsiteEndpoint: s3-website-us-west-2.amazonaws.com
 
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Custom domains
+        Parameters:
+          - ApiDomainName
+          - WebDomainName
+      - Label:
+          default: OAuth
+        Parameters:
+          - AuthDomainName
+          - AuthHashKey
+          - OAuthClientId
+          - OAuthClientSecret
+      - Label:
+          default: Notifications
+        Parameters:
+          - NotificationEmail
+          - NotificationNumber
+
 Outputs:
   ApiDistributionDomainName:
     Condition: ApiDomainNameSpecified

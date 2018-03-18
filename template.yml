@@ -317,6 +317,7 @@ Resources:
     Type: AWS::Serverless::SimpleTable
 
   WebAuthFunction:
+    Condition: OAuthClientIdSpecified
     Properties:
       AutoPublishAlias: Live
       CodeUri: ./web-auth/index.zip
@@ -328,6 +329,7 @@ Resources:
     Type: AWS::Serverless::Function
 
   WebAuthFunctionRole:
+    Condition: OAuthClientIdSpecified
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -447,8 +449,11 @@ Resources:
               Forward: none
             QueryString: true
           LambdaFunctionAssociations:
-            - EventType: viewer-request
-              LambdaFunctionARN: !Ref WebAuthFunction.Version
+            - !If
+              - OAuthClientIdSpecified
+              - EventType: viewer-request
+                LambdaFunctionARN: !Ref WebAuthFunction.Version
+              - !Ref AWS::NoValue
           TargetOriginId: !Ref WebBucket
           ViewerProtocolPolicy: redirect-to-https
         DefaultRootObject: index.html

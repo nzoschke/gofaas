@@ -3,6 +3,10 @@ AWSTemplateFormatVersion: '2010-09-09'
 
 Conditions:
   ApiDomainNameSpecified: !Not [!Equals [!Ref ApiDomainName, ""]]
+  AuthDomainNameSpecified: !Not [!Equals [!Ref AuthDomainName, ""]]
+  AuthHashKeySpecified: !Not [!Equals [!Ref AuthHashKey, ""]]
+  OAuthClientIdSpecified: !Not [!Equals [!Ref OAuthClientId, ""]]
+  OAuthClientSecretSpecified: !Not [!Equals [!Ref OAuthClientSecret, ""]]
   NotificationEmailSpecified: !Not [!Equals [!Ref NotificationEmail, ""]]
   NotificationNumberSpecified: !Not [!Equals [!Ref NotificationNumber, ""]]
   WebDomainNameSpecified: !Not [!Equals [!Ref WebDomainName, ""]]
@@ -70,6 +74,28 @@ Outputs:
         - {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}
 
 Parameters:
+  AuthDomainName:
+    Default: ""
+    Description: "The domain to restrict OAuth profiles to, e.g. gofaas.net"
+    Type: String
+
+  AuthHashKey:
+    Default: ""
+    Description: "A secret key for signing and verifying JWTs"
+    NoEcho: true
+    Type: String
+
+  OAuthClientId:
+    Default: ""
+    Description: "The Google OAuth 2.0 web app client id"
+    Type: String
+
+  OAuthClientSecret:
+    Default: ""
+    Description: "The Google OAuth 2.0 web app client secret"
+    NoEcho: true
+    Type: String
+
   ApiDomainName:
     Default: ""
     Description: "Domain or subdomain for the API Gateway distribution, e.g. api.gofaas.net"
@@ -277,6 +303,38 @@ Resources:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
     Type: AWS::Serverless::SimpleTable
+
+  WebAuthParameterAuthDomainName:
+    Condition: AuthDomainNameSpecified
+    Properties:
+      Name: AuthDomainName
+      Type: String
+      Value: !Ref AuthDomainName
+    Type: AWS::SSM::Parameter
+
+  WebAuthParameterAuthHashKey:
+    Condition: AuthHashKeySpecified
+    Properties:
+      Name: AuthHashKey
+      Type: String
+      Value: !Ref AuthHashKey
+    Type: AWS::SSM::Parameter
+
+  WebAuthParameterOAuthClientId:
+    Condition: OAuthClientIdSpecified
+    Properties:
+      Name: OAuthClientId
+      Type: String
+      Value: !Ref OAuthClientId
+    Type: AWS::SSM::Parameter
+
+  WebAuthParameterOAuthClientSecret:
+    Condition: OAuthClientSecretSpecified
+    Properties:
+      Name: OAuthClientSecret
+      Type: String
+      Value: !Ref OAuthClientSecret
+    Type: AWS::SSM::Parameter
 
   WebBucket:
     DeletionPolicy: Retain

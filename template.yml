@@ -16,7 +16,14 @@ Globals:
   Api:
     Cors:
       AllowHeaders: "'Accept, Authorization, Content-Type'"
-      AllowOrigin: "'https://private.gofaas.net'"
+      AllowOrigin:
+        !If
+        - WebDomainNameSpecified
+        - !Sub "'https://${WebDomainName}'"
+        - !Sub
+          - "'http://${WebBucket}.${Endpoint}'"
+          - {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}
+
   Function:
     Environment:
       Variables:

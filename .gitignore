@@ -2,6 +2,8 @@
 __pycache__
 *.pyc
 gofaas
+index.zip
 main
 main.zip
 out.yml
+node_modules

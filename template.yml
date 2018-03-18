@@ -10,6 +10,7 @@ Conditions:
   NotificationEmailSpecified: !Not [!Equals [!Ref NotificationEmail, ""]]
   NotificationNumberSpecified: !Not [!Equals [!Ref NotificationNumber, ""]]
   WebDomainNameSpecified: !Not [!Equals [!Ref WebDomainName, ""]]
+  WebDomainNameUnspecified: !Equals [!Ref WebDomainName, ""]
 
 Globals:
   Function:
@@ -385,7 +386,22 @@ Resources:
         IndexDocument: index.html
     Type: AWS::S3::Bucket
 
-  WebBucketPolicy:
+  WebBucketPolicyPrivate:
+    Condition: WebDomainNameSpecified
+    Properties:
+      Bucket: !Ref WebBucket
+      PolicyDocument:
+        Statement:
+          - Action: s3:GetObject
+            Effect: Allow
+            Principal:
+              CanonicalUser: !GetAtt WebOriginAccessIdentity.S3CanonicalUserId
+            Resource: !Sub arn:aws:s3:::${WebBucket}/*
+            Sid: GetObjectsCloudFront
+    Type: AWS::S3::BucketPolicy
+
+  WebBucketPolicyPublic:
+    Condition: WebDomainNameUnspecified
     Properties:
       Bucket: !Ref WebBucket
       PolicyDocument:
@@ -394,7 +410,7 @@ Resources:
             Effect: Allow
             Principal: "*"
             Resource: !Sub arn:aws:s3:::${WebBucket}/*
-            Sid: PublicReadForGetBucketObjects
+            Sid: GetObjectsPublic
     Type: AWS::S3::BucketPolicy
 
   WebCertificate:
@@ -428,19 +444,22 @@ Resources:
         Enabled: true
         HttpVersion: http2
         Origins:
-          - CustomOriginConfig:
-              HTTPPort: 80
-              HTTPSPort: 443
-              OriginProtocolPolicy: http-only
-            DomainName: !Sub
-              - ${WebBucket}.${Endpoint}
-              - {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}
+          - S3OriginConfig:
+              OriginAccessIdentity: !Sub origin-access-identity/cloudfront/${WebOriginAccessIdentity}
+            DomainName: !Sub ${WebBucket}.s3.amazonaws.com
             Id: !Ref WebBucket
         PriceClass: PriceClass_All
         ViewerCertificate:
           AcmCertificateArn: !Ref WebCertificate
           SslSupportMethod: sni-only
     Type: AWS::CloudFront::Distribution
+
+  WebOriginAccessIdentity:
+    Condition: WebDomainNameSpecified
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Ref WebBucket
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
 
   WorkerFunction:
     Properties:

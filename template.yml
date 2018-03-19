@@ -333,7 +333,6 @@ Resources:
     Type: AWS::Serverless::SimpleTable
 
   WebAuthFunction:
-    Condition: OAuthClientIdSpecified
     Properties:
       AutoPublishAlias: Live
       CodeUri: ./web-auth/index.zip
@@ -345,7 +344,6 @@ Resources:
     Type: AWS::Serverless::Function
 
   WebAuthFunctionRole:
-    Condition: OAuthClientIdSpecified
     Properties:
       AssumeRolePolicyDocument:
         Statement:

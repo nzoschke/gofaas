@@ -9,11 +9,16 @@
 
 <body>
     <div id="app">
-        <p>Hello {{ claims.sub }}! {{ message }}</p>
+        <p>Hello {{ claims.sub || "gopher" }}! {{ message }}</p>
         <button v-on:click="putWork">Do some work</button>
         <p>{{ results }}</p>
+        <p v-if="!claims.sub">
+            Warning: your website and <a href="{{ api_url }}">api</a> are public. Check out the <a href="https://github.com/nzoschke/gofaas">gofaas project</a> security guide to add OAuth and JWT.
+        </p>
     </div>
 </body>
 
+<script src="js/env.js"></script>
 <script src="js/app.js"></script>
+
 </html>

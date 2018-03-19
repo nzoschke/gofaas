@@ -3,6 +3,7 @@ package gofaas
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -23,6 +24,7 @@ type User struct {
 
 // UserCreate creates a user
 func UserCreate(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	log.Printf("ENV: %+v\n", os.Environ())
 	u := &User{}
 	if err := json.Unmarshal([]byte(e.Body), u); err != nil {
 		return responseEmpty, errors.WithStack(err)
@@ -148,7 +150,7 @@ func userDelete(ctx context.Context, u *User) error {
 
 func userPut(ctx context.Context, u *User) error {
 	// encrypt a token plaintext if set
-	if u.TokenPlain != "" {
+	if u.TokenPlain != "" && os.Getenv("KEY_ID") != "" {
 		out, err := KMS().EncryptWithContext(ctx, &kms.EncryptInput{
 			Plaintext: []byte(u.TokenPlain),
 			KeyId:     aws.String(os.Getenv("KEY_ID")),

@@ -224,6 +224,7 @@ Resources:
       CodeUri: ./handlers/user-create/main.zip
       Environment:
         Variables:
+          DYNAMODB_ENDPOINT: "" # test environment
           KEY_ID: !Ref Key
           TABLE_NAME: !Ref UsersTable
       Events:

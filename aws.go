@@ -1,6 +1,9 @@
 package gofaas
 
 import (
+	"os"
+
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/kms"
@@ -10,6 +13,8 @@ import (
 	"github.com/aws/aws-xray-sdk-go/xray"
 )
 
+var sess = session.Must(session.NewSession())
+
 func init() {
 	xray.Configure(xray.Config{
 		LogLevel: "info",
@@ -18,8 +23,15 @@ func init() {
 
 // DynamoDB is an xray instrumented DynamoDB client
 func DynamoDB() *dynamodb.DynamoDB {
-	c := dynamodb.New(session.Must(session.NewSession()))
+	sess := session.Must(session.NewSession())
+	c := dynamodb.New(sess)
 	xray.AWS(c.Client)
+
+	// testing with localstack
+	if e := os.Getenv("DYNAMODB_ENDPOINT"); e != "" {
+		c = dynamodb.New(sess, &aws.Config{Endpoint: aws.String(e)})
+	}
+
 	return c
 }
 
@@ -39,8 +51,14 @@ func Lambda() *lambda.Lambda {
 
 // S3 is an xray instrumented S3 client
 func S3() *s3.S3 {
-	c := s3.New(session.Must(session.NewSession()))
+	c := s3.New(sess)
 	xray.AWS(c.Client)
+
+	// testing with localstack
+	if e := os.Getenv("S3_ENDPOINT"); e != "" {
+		c = s3.New(sess, &aws.Config{Endpoint: aws.String(e)})
+	}
+
 	return c
 }
 

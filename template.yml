@@ -205,7 +205,7 @@ Resources:
 
   NotificationTopic:
     Properties:
-      DisplayName: Notification
+      DisplayName: !Sub Notifications for ${AWS::StackName}
       Subscription:
         - !If
           - NotificationEmailSpecified
@@ -217,7 +217,6 @@ Resources:
           - Endpoint: !Ref NotificationNumber
             Protocol: sms
           - !Ref AWS::NoValue
-      TopicName: Notification
     Type: AWS::SNS::Topic
 
   UserCreateFunction:

@@ -27,7 +27,7 @@ func notify(ctx context.Context, err error) {
 	}
 
 	subj := fmt.Sprintf("ERROR %s", os.Getenv("AWS_LAMBDA_FUNCTION_NAME"))
-  msg := fmt.Sprintf("%+v\n", err)
+	msg := fmt.Sprintf("%+v\n", err)
 	log.Printf("%s %s\n", subj, msg)
 
 	_, err = SNS().PublishWithContext(ctx, &sns.PublishInput{

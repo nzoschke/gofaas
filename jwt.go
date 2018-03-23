@@ -19,17 +19,23 @@ func JWTClaims(e events.APIGatewayProxyRequest, claims jwt.Claims) (events.APIGa
 		Headers: map[string]string{
 			"Access-Control-Allow-Origin": header(e, "Origin"),
 		},
+		StatusCode: 200,
 	}
 
-	tokenString := strings.TrimPrefix(header(e, "Authorization"), "Bearer ")
+	// for convenience, "pass" auth if no hash key is set
+	k := os.Getenv("AUTH_HASH_KEY")
+	if k == "" {
+		return r, claims, nil
+	}
 
-	key, err := base64.StdEncoding.DecodeString(os.Getenv("AUTH_HASH_KEY"))
+	key, err := base64.StdEncoding.DecodeString(k)
 	if err != nil {
 		r.Body = fmt.Sprintf("{\"error\": %q}", err)
 		r.StatusCode = 500
 		return r, claims, errors.WithStack(err)
 	}
 
+	tokenString := strings.TrimPrefix(header(e, "Authorization"), "Bearer ")
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return key, nil
 	})
@@ -43,7 +49,6 @@ func JWTClaims(e events.APIGatewayProxyRequest, claims jwt.Claims) (events.APIGa
 		return r, claims, errors.New("Invalid token")
 	}
 
-	r.StatusCode = 200
 	return r, claims, nil
 }
 

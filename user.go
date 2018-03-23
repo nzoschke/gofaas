@@ -3,13 +3,13 @@ package gofaas
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/kms"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
@@ -24,7 +24,11 @@ type User struct {
 
 // UserCreate creates a user
 func UserCreate(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	log.Printf("ENV: %+v\n", os.Environ())
+	r, _, err := JWTClaims(e, &jwt.StandardClaims{})
+	if err != nil {
+		return r, nil
+	}
+
 	u := &User{}
 	if err := json.Unmarshal([]byte(e.Body), u); err != nil {
 		return responseEmpty, errors.WithStack(err)
@@ -42,6 +46,11 @@ func UserCreate(ctx context.Context, e events.APIGatewayProxyRequest) (events.AP
 
 // UserDelete deletes a user by id
 func UserDelete(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	r, _, err := JWTClaims(e, &jwt.StandardClaims{})
+	if err != nil {
+		return r, nil
+	}
+
 	u, err := userGet(ctx, e.PathParameters["id"], false)
 	if err != nil {
 		if err, ok := err.(ResponseError); ok {
@@ -59,6 +68,11 @@ func UserDelete(ctx context.Context, e events.APIGatewayProxyRequest) (events.AP
 
 // UserRead returns a user by id
 func UserRead(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	r, _, err := JWTClaims(e, &jwt.StandardClaims{})
+	if err != nil {
+		return r, nil
+	}
+
 	decrypt := false
 	if e.QueryStringParameters["token"] == "true" {
 		decrypt = true
@@ -77,6 +91,11 @@ func UserRead(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIG
 
 // UserUpdate updates a user by id
 func UserUpdate(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	r, _, err := JWTClaims(e, &jwt.StandardClaims{})
+	if err != nil {
+		return r, nil
+	}
+
 	nu := &User{}
 	if err := json.Unmarshal([]byte(e.Body), nu); err != nil {
 		return responseEmpty, errors.WithStack(err)
@@ -150,7 +169,7 @@ func userDelete(ctx context.Context, u *User) error {
 
 func userPut(ctx context.Context, u *User) error {
 	// encrypt a token plaintext if set
-	if u.TokenPlain != "" && os.Getenv("KEY_ID") != "" {
+	if u.TokenPlain != "" {
 		out, err := KMS().EncryptWithContext(ctx, &kms.EncryptInput{
 			Plaintext: []byte(u.TokenPlain),
 			KeyId:     aws.String(os.Getenv("KEY_ID")),

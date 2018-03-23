@@ -19,7 +19,7 @@ var app = new Vue({ // eslint-disable-line
         putWork: function () {
             var vm = this;
 
-            fetch(this.api_url, {
+            fetch(`${this.api_url}/work`, {
                 method: "POST",
                 mode: "cors",
                 headers: {

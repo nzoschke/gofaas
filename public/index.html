@@ -13,7 +13,7 @@
         <button v-on:click="putWork">Do some work</button>
         <p>{{ results }}</p>
         <p v-if="!claims.sub">
-            Warning: your website and <a href="{{ api_url }}">api</a> are public. Check out the <a href="https://github.com/nzoschke/gofaas">gofaas project</a> security guide to add OAuth and JWT.
+            Warning: your website and <a :href="api_url">api</a> are public. Check out the <a href="https://github.com/nzoschke/gofaas">gofaas project</a> security guide to add OAuth and JWT.
         </p>
     </div>
 </body>

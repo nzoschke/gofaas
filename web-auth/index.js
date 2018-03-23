@@ -123,34 +123,29 @@ var paramsGet = (context) => (new Promise(function (fulfill, reject) {
     // immediate return cached params if defined
     if (Params.AuthDomainName !== undefined) return fulfill();
 
-    // infer the region of SSM from the functionName, e.g. "us-east-1.gofaas-WebAuthFunction"
+    // infer the stack and region from the functionName, e.g. "us-east-1.gofaas-WebAuthFunction"
+    var path = "/gofaas/";
     var region = "us-east-1";
     var parts = context.functionName.split(".");
     if (parts.length == 2) {
+        path = `/${parts[1].replace("-WebAuthFunction", "")}/`;
         region = parts[0];
     }
-    var ssm = new AWS.SSM({ region });
 
-    var p = {
-        Names: [
-            "AuthDomainName",
-            "AuthHashKey",
-            "OAuthClientId",
-            "OAuthClientSecret",
-        ],
-    };
-
-    ssm.getParameters(p)
+    new AWS.SSM({ region })
+        .getParametersByPath({ Path: path })
         .promise()
         .then(data => fulfill(
             data.Parameters.forEach((p) => {
-                Params[p.Name] = p.Value;
+                Params[p.Name.slice(path.length)] = p.Value;
             })
         ))
         .catch(err => (reject(err)));
 }));
 
 exports.handler = (event, context, callback) => {
+    console.log(event, context);
+
     paramsGet(context)
         .then(() => {
             var request = event.Records[0].cf.request;

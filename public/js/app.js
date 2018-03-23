@@ -4,6 +4,7 @@ var app = new Vue({ // eslint-disable-line
     },
     data: {
         access_token: undefined,
+        api_url: API_URL,
         claims: {},
         message: "Goodbye servers!",
         results: "",
@@ -18,7 +19,7 @@ var app = new Vue({ // eslint-disable-line
         putWork: function () {
             var vm = this;
 
-            fetch("https://api.gofaas.net/work", {
+            fetch(`${this.api_url}/work`, {
                 method: "POST",
                 mode: "cors",
                 headers: {

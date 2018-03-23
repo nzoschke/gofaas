@@ -1,4 +1,5 @@
 .DS_Store
+.vscode
 __pycache__
 *.pyc
 gofaas
@@ -7,3 +8,4 @@ main
 main.zip
 out.yml
 node_modules
+public/js/env.js

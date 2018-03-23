@@ -20,9 +20,7 @@ Globals:
         !If
         - WebDomainNameSpecified
         - !Sub "'https://${WebDomainName}'"
-        - !Sub
-          - "'http://${WebBucket}.${Endpoint}'"
-          - {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}
+        - Fn::Sub: ["'http://${WebBucket}.${Endpoint}'", {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}]
 
   Function:
     Environment:
@@ -102,9 +100,7 @@ Outputs:
       !If
       - WebDomainNameSpecified
       - !Sub https://${WebDomainName}
-      - !Sub
-        - http://${WebBucket}.${Endpoint}
-        - {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}
+      - Fn::Sub: ["http://${WebBucket}.${Endpoint}", {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}]
 
 Parameters:
   ApiDomainName:
@@ -209,7 +205,7 @@ Resources:
 
   NotificationTopic:
     Properties:
-      DisplayName: Notification
+      DisplayName: !Sub Notifications for ${AWS::StackName}
       Subscription:
         - !If
           - NotificationEmailSpecified
@@ -221,7 +217,6 @@ Resources:
           - Endpoint: !Ref NotificationNumber
             Protocol: sms
           - !Ref AWS::NoValue
-      TopicName: Notification
     Type: AWS::SNS::Topic
 
   UserCreateFunction:
@@ -229,6 +224,7 @@ Resources:
       CodeUri: ./handlers/user-create/main.zip
       Environment:
         Variables:
+          DYNAMODB_ENDPOINT: "" # test environment
           KEY_ID: !Ref Key
           TABLE_NAME: !Ref UsersTable
       Events:
@@ -338,7 +334,6 @@ Resources:
     Type: AWS::Serverless::SimpleTable
 
   WebAuthFunction:
-    Condition: OAuthClientIdSpecified
     Properties:
       AutoPublishAlias: Live
       CodeUri: ./web-auth/index.zip
@@ -350,7 +345,6 @@ Resources:
     Type: AWS::Serverless::Function
 
   WebAuthFunctionRole:
-    Condition: OAuthClientIdSpecified
     Properties:
       AssumeRolePolicyDocument:
         Statement:
@@ -370,10 +364,10 @@ Resources:
       Policies:
         - PolicyDocument:
             Statement:
-              - Action: ssm:GetParameters
+              - Action: ssm:GetParametersByPath
                 Effect: Allow
                 Resource:
-                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/*
             Version: 2012-10-17
           PolicyName: SSM
     Type: AWS::IAM::Role
@@ -381,7 +375,7 @@ Resources:
   WebAuthParameterAuthDomainName:
     Condition: AuthDomainNameSpecified
     Properties:
-      Name: AuthDomainName
+      Name: !Sub /${AWS::StackName}/AuthDomainName
       Type: String
       Value: !Ref AuthDomainName
     Type: AWS::SSM::Parameter
@@ -389,7 +383,7 @@ Resources:
   WebAuthParameterAuthHashKey:
     Condition: AuthHashKeySpecified
     Properties:
-      Name: AuthHashKey
+      Name: !Sub /${AWS::StackName}/AuthHashKey
       Type: String
       Value: !Ref AuthHashKey
     Type: AWS::SSM::Parameter
@@ -397,7 +391,7 @@ Resources:
   WebAuthParameterOAuthClientId:
     Condition: OAuthClientIdSpecified
     Properties:
-      Name: OAuthClientId
+      Name: !Sub /${AWS::StackName}/OAuthClientId
       Type: String
       Value: !Ref OAuthClientId
     Type: AWS::SSM::Parameter
@@ -405,7 +399,7 @@ Resources:
   WebAuthParameterOAuthClientSecret:
     Condition: OAuthClientSecretSpecified
     Properties:
-      Name: OAuthClientSecret
+      Name: !Sub /${AWS::StackName}/OAuthClientSecret
       Type: String
       Value: !Ref OAuthClientSecret
     Type: AWS::SSM::Parameter

@@ -404,7 +404,6 @@ Resources:
     Type: AWS::SSM::Parameter
 
   WebBucket:
-    DeletionPolicy: Retain
     Properties:
       AccessControl: PublicRead
       BucketName: !If [WebDomainNameSpecified, !Ref WebDomainName, !Sub "${AWS::StackName}-webbucket-${AWS::AccountId}"]

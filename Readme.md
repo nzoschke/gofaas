@@ -140,6 +140,9 @@ $ PKG=github.com/nzoschke/gofaas
 $ go get $PKG && cd $GOPATH/src/$PKG
 
 $ make test
+go get -u github.com/golang/dep/cmd/dep
+dep ensure
+go test -v ./...
 ...
 ok  	github.com/nzoschke/gofaas	0.014s
 ```

@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+set -e
 
 trap 'echo 🈲 ERROR' ERR
 

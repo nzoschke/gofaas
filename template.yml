@@ -3,11 +3,25 @@ AWSTemplateFormatVersion: '2010-09-09'
 
 Conditions:
   ApiDomainNameSpecified: !Not [!Equals [!Ref ApiDomainName, ""]]
+  AuthDomainNameSpecified: !Not [!Equals [!Ref AuthDomainName, ""]]
+  AuthHashKeySpecified: !Not [!Equals [!Ref AuthHashKey, ""]]
   NotificationEmailSpecified: !Not [!Equals [!Ref NotificationEmail, ""]]
   NotificationNumberSpecified: !Not [!Equals [!Ref NotificationNumber, ""]]
+  OAuthClientIdSpecified: !Not [!Equals [!Ref OAuthClientId, ""]]
+  OAuthClientSecretSpecified: !Not [!Equals [!Ref OAuthClientSecret, ""]]
   WebDomainNameSpecified: !Not [!Equals [!Ref WebDomainName, ""]]
+  WebDomainNameUnspecified: !Equals [!Ref WebDomainName, ""]
 
 Globals:
+  Api:
+    Cors:
+      AllowHeaders: "'Accept, Authorization, Content-Type'"
+      AllowOrigin:
+        !If
+        - WebDomainNameSpecified
+        - !Sub "'https://${WebDomainName}'"
+        - Fn::Sub: ["'http://${WebBucket}.${Endpoint}'", {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}]
+
   Function:
     Environment:
       Variables:
@@ -44,6 +58,27 @@ Mappings:
       S3HostedZoneId: Z3BJ6K6RIION7M
       S3WebsiteEndpoint: s3-website-us-west-2.amazonaws.com
 
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Custom domains
+        Parameters:
+          - ApiDomainName
+          - WebDomainName
+      - Label:
+          default: OAuth
+        Parameters:
+          - AuthDomainName
+          - AuthHashKey
+          - OAuthClientId
+          - OAuthClientSecret
+      - Label:
+          default: Notifications
+        Parameters:
+          - NotificationEmail
+          - NotificationNumber
+
 Outputs:
   ApiDistributionDomainName:
     Condition: ApiDomainNameSpecified
@@ -65,14 +100,23 @@ Outputs:
       !If
       - WebDomainNameSpecified
       - !Sub https://${WebDomainName}
-      - !Sub
-        - http://${WebBucket}.${Endpoint}
-        - {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}
+      - Fn::Sub: ["http://${WebBucket}.${Endpoint}", {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}]
 
 Parameters:
   ApiDomainName:
     Default: ""
     Description: "Domain or subdomain for the API Gateway distribution, e.g. api.gofaas.net"
+    Type: String
+
+  AuthDomainName:
+    Default: ""
+    Description: "The domain to restrict OAuth profiles to, e.g. gofaas.net"
+    Type: String
+
+  AuthHashKey:
+    Default: ""
+    Description: "A secret key for signing and verifying JWTs"
+    NoEcho: true
     Type: String
 
   NotificationEmail:
@@ -81,6 +125,17 @@ Parameters:
 
   NotificationNumber:
     Default: ""
+    Type: String
+
+  OAuthClientId:
+    Default: ""
+    Description: "The Google OAuth 2.0 web app client id"
+    Type: String
+
+  OAuthClientSecret:
+    Default: ""
+    Description: "The Google OAuth 2.0 web app client secret"
+    NoEcho: true
     Type: String
 
   WebDomainName:
@@ -150,7 +205,7 @@ Resources:
 
   NotificationTopic:
     Properties:
-      DisplayName: Notification
+      DisplayName: !Sub Notifications for ${AWS::StackName}
       Subscription:
         - !If
           - NotificationEmailSpecified
@@ -162,7 +217,6 @@ Resources:
           - Endpoint: !Ref NotificationNumber
             Protocol: sms
           - !Ref AWS::NoValue
-      TopicName: Notification
     Type: AWS::SNS::Topic
 
   UserCreateFunction:
@@ -278,8 +332,78 @@ Resources:
         WriteCapacityUnits: 1
     Type: AWS::Serverless::SimpleTable
 
+  WebAuthFunction:
+    Properties:
+      AutoPublishAlias: Live
+      CodeUri: ./web-auth/index.zip
+      Environment: !Ref AWS::NoValue
+      FunctionName: !Sub ${AWS::StackName}-WebAuthFunction
+      Handler: index.handler
+      Role: !GetAtt WebAuthFunctionRole.Arn
+      Runtime: nodejs6.10
+    Type: AWS::Serverless::Function
+
+  WebAuthFunctionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - edgelambda.amazonaws.com
+                - lambda.amazonaws.com
+            Sid: AllowLambdaServiceToAssumeRole
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+      Path: /
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action: ssm:GetParametersByPath
+                Effect: Allow
+                Resource:
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/*
+            Version: 2012-10-17
+          PolicyName: SSM
+    Type: AWS::IAM::Role
+
+  WebAuthParameterAuthDomainName:
+    Condition: AuthDomainNameSpecified
+    Properties:
+      Name: !Sub /${AWS::StackName}/AuthDomainName
+      Type: String
+      Value: !Ref AuthDomainName
+    Type: AWS::SSM::Parameter
+
+  WebAuthParameterAuthHashKey:
+    Condition: AuthHashKeySpecified
+    Properties:
+      Name: !Sub /${AWS::StackName}/AuthHashKey
+      Type: String
+      Value: !Ref AuthHashKey
+    Type: AWS::SSM::Parameter
+
+  WebAuthParameterOAuthClientId:
+    Condition: OAuthClientIdSpecified
+    Properties:
+      Name: !Sub /${AWS::StackName}/OAuthClientId
+      Type: String
+      Value: !Ref OAuthClientId
+    Type: AWS::SSM::Parameter
+
+  WebAuthParameterOAuthClientSecret:
+    Condition: OAuthClientSecretSpecified
+    Properties:
+      Name: !Sub /${AWS::StackName}/OAuthClientSecret
+      Type: String
+      Value: !Ref OAuthClientSecret
+    Type: AWS::SSM::Parameter
+
   WebBucket:
-    DeletionPolicy: Retain
     Properties:
       AccessControl: PublicRead
       BucketName: !If [WebDomainNameSpecified, !Ref WebDomainName, !Sub "${AWS::StackName}-webbucket-${AWS::AccountId}"]
@@ -288,7 +412,22 @@ Resources:
         IndexDocument: index.html
     Type: AWS::S3::Bucket
 
-  WebBucketPolicy:
+  WebBucketPolicyPrivate:
+    Condition: WebDomainNameSpecified
+    Properties:
+      Bucket: !Ref WebBucket
+      PolicyDocument:
+        Statement:
+          - Action: s3:GetObject
+            Effect: Allow
+            Principal:
+              CanonicalUser: !GetAtt WebOriginAccessIdentity.S3CanonicalUserId
+            Resource: !Sub arn:aws:s3:::${WebBucket}/*
+            Sid: GetObjectsCloudFront
+    Type: AWS::S3::BucketPolicy
+
+  WebBucketPolicyPublic:
+    Condition: WebDomainNameUnspecified
     Properties:
       Bucket: !Ref WebBucket
       PolicyDocument:
@@ -297,7 +436,7 @@ Resources:
             Effect: Allow
             Principal: "*"
             Resource: !Sub arn:aws:s3:::${WebBucket}/*
-            Sid: PublicReadForGetBucketObjects
+            Sid: GetObjectsPublic
     Type: AWS::S3::BucketPolicy
 
   WebCertificate:
@@ -322,25 +461,61 @@ Resources:
             Cookies:
               Forward: none
             QueryString: true
+          LambdaFunctionAssociations:
+            - !If
+              - OAuthClientIdSpecified
+              - EventType: viewer-request
+                LambdaFunctionARN: !Ref WebAuthFunction.Version
+              - !Ref AWS::NoValue
           TargetOriginId: !Ref WebBucket
           ViewerProtocolPolicy: redirect-to-https
         DefaultRootObject: index.html
         Enabled: true
         HttpVersion: http2
         Origins:
-          - CustomOriginConfig:
-              HTTPPort: 80
-              HTTPSPort: 443
-              OriginProtocolPolicy: http-only
-            DomainName: !Sub
-              - ${WebBucket}.${Endpoint}
-              - {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}
+          - DomainName: !Sub ${WebBucket}.s3.amazonaws.com
             Id: !Ref WebBucket
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub origin-access-identity/cloudfront/${WebOriginAccessIdentity}
         PriceClass: PriceClass_All
         ViewerCertificate:
           AcmCertificateArn: !Ref WebCertificate
           SslSupportMethod: sni-only
     Type: AWS::CloudFront::Distribution
+
+  WebOriginAccessIdentity:
+    Condition: WebDomainNameSpecified
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Ref WebBucket
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+
+  WorkCreateFunction:
+    Properties:
+      CodeUri: ./handlers/work-create/main.zip
+      Environment:
+        Variables:
+          AUTH_HASH_KEY: !Ref AuthHashKey
+          WORKER_FUNCTION_NAME: !Ref WorkerFunction
+      Events:
+        Request:
+          Properties:
+            Method: POST
+            Path: /work
+          Type: Api
+      FunctionName: !Sub ${AWS::StackName}-WorkCreateFunction
+      Handler: main
+      Policies:
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt NotificationTopic.TopicName
+        - Statement:
+            - Action:
+                - lambda:InvokeFunction
+              Effect: Allow
+              Resource: !GetAtt WorkerFunction.Arn
+          Version: 2012-10-17
+      Runtime: go1.x
+    Type: AWS::Serverless::Function
 
   WorkerFunction:
     Properties:

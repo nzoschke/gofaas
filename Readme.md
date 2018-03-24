@@ -237,7 +237,7 @@ gofaas-UsersTable-1CYAQH3HHHRGW       UsersTable  AWS::DynamoDB::Table
 
 ## Docs
 
-Check out [the gofaas docs folder](docs/) where each component is explained in more details.
+Check out [the docs folder](docs/) where each component is explained in more detail.
 
 ## Contributing
 

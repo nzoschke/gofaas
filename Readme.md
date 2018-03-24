@@ -2,7 +2,7 @@
 
 Running a Go application on AWS Lambda is easier than ever, once you figure out how to configure Lambda, API Gateway and 10 or other "serverless" services to support the Go functions.
 
-This is a boilerplate app with all the AWS pieces configured correctly and explained in depth. See [the gofaas docs folder](docs/) for detailed guides about functions, tracing, security, automation and more with AWS and Go.
+This is a boilerplate app with all the AWS pieces configured correctly and explained in depth. See [the docs folder](docs/) for detailed guides about functions, tracing, security, automation and more with AWS and Go.
 
 With this foundation you can skip over all the undifferentiated setup, and focus entirely on your Go code.
 
@@ -16,17 +16,19 @@ This project demonstrates a simple and clean foundation for Go in Lambda. You ca
 
 It demonstrates:
 
-| Component                                    | Via                                     | Config, Code       |
-| -------------------------------------------- |-----------------------------------------|:------------------:|
-| [HTTP functions][1]                          | Lambda, API Gateway                     | [💾](dashboard.go) |
-| [Worker functions (one-off and periodic)][2] | Lambda, Invoke API, CloudWatch Events   | [💾](worker.go)    |
-| [Development, packaging and deployment][3]   | make, go, aws-sam-local, CloudFormation | [⚙️](Makefile)     |
-| [Per-function environment and policies][4]   | Lambda, IAM                             | [⚙️](template.yml) |
-| [Custom domains][5]                          | CloudFront, ACM                         | [⚙️](template.yml) |
-| [Static web content][6]                      | S3, CloudFront, ACM                     | [⚙️](template.yml) |
-| [Function traces and logs][7]                | CloudWatch Logs, X-Ray, AWS SDKs for Go | [💾](aws.go)       |
-| [Notifications][8]                           | SNS                                     | [💾](notify.go)    |
-| [Databases and encryption at rest][9]        | DynamoDB, KMS                           | [💾](user.go)      |
+| Component                                    | Via                                       | Config, Code            |
+| -------------------------------------------- |-------------------------------------------|:-----------------------:|
+| [HTTP functions][1]                          | Lambda, API Gateway                       | [💾](dashboard.go)      |
+| [Worker functions (one-off and periodic)][2] | Lambda, Invoke API, CloudWatch Events     | [💾](worker.go)         |
+| [Development, packaging and deployment][3]   | make, go, aws-sam-local, CloudFormation   | [⚙️](Makefile)          |
+| [Per-function environment and policies][4]   | Lambda, IAM                               | [⚙️](template.yml)      |
+| [Custom domains][5]                          | CloudFront, ACM                           | [⚙️](template.yml)      |
+| [Static web content][6]                      | S3, CloudFront, ACM                       | [⚙️](template.yml)      |
+| Static web security with OAuth               | CloudFront, Lambda@Edge, Google OAuth 2.0 | [💾](web-auth/index.js) |
+| Function security with JWT                   | jwt-go                                    | [💾](jwt.go)            |
+| [Function traces and logs][7]                | CloudWatch Logs, X-Ray, AWS SDKs for Go   | [💾](aws.go)            |
+| [Notifications][8]                           | SNS                                       | [💾](notify.go)         |
+| [Databases and encryption at rest][9]        | DynamoDB, KMS                             | [💾](user.go)           |
 
 [1]: docs/http-functions.md
 [2]: docs/worker-functions.md

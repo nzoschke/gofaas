@@ -45,5 +45,5 @@ web-auth/index.zip: web-auth/*.js
 	go get github.com/tj/node-prune/cmd/node-prune
 	cd ./web-auth && npm install && node-prune && zip -9r index.zip *
 
-test:
+test: dep
 	go test -v ./...

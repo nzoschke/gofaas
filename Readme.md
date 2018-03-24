@@ -140,6 +140,9 @@ $ PKG=github.com/nzoschke/gofaas
 $ go get $PKG && cd $GOPATH/src/$PKG
 
 $ make test
+go get -u github.com/golang/dep/cmd/dep
+dep ensure
+go test -v ./...
 ...
 ok  	github.com/nzoschke/gofaas	0.014s
 ```
@@ -233,6 +236,22 @@ $ aws cloudformation describe-stack-resources --output text --stack-name gofaas 
 gofaas-bucket-aykdokk6aek8            Bucket      AWS::S3::Bucket
 8eb8e209-51fb-41fa-adfe-1ec401667df4  Key         AWS::KMS::Key
 gofaas-UsersTable-1CYAQH3HHHRGW       UsersTable  AWS::DynamoDB::Table
+```
+
+### Integration Testing
+
+We can verify the app functionality by creating an isolated testing stack, testing all the endpoints, then deleting the stack. The `ci.sh` script automates this:
+
+```console
+$ ./ci.sh
+aws cloudformation package ...
+aws cloudformation deploy ...
+...
+<title>My first gofaas/Vue app</title>
+"username": "test"
+{"ExecutedVersion":null,"FunctionError":null,"LogResult":null,"Payload":"","StatusCode":202}
+...
+✅ SUCCESS!
 ```
 
 ## Docs

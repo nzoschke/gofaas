@@ -16,19 +16,19 @@ This project demonstrates a simple and clean foundation for Go in Lambda. You ca
 
 It demonstrates:
 
-| Component                                    | Via                                       | Config, Code            |
-| -------------------------------------------- |-------------------------------------------|:-----------------------:|
-| [HTTP functions][1]                          | Lambda, API Gateway                       | [💾](dashboard.go)      |
-| [Worker functions (one-off and periodic)][2] | Lambda, Invoke API, CloudWatch Events     | [💾](worker.go)         |
-| [Development, packaging and deployment][3]   | make, go, aws-sam-local, CloudFormation   | [⚙️](Makefile)          |
-| [Per-function environment and policies][4]   | Lambda, IAM                               | [⚙️](template.yml)      |
-| [Custom domains][5]                          | CloudFront, ACM                           | [⚙️](template.yml)      |
-| [Static web content][6]                      | S3, CloudFront, ACM                       | [⚙️](template.yml)      |
-| Static web security with OAuth               | CloudFront, Lambda@Edge, Google OAuth 2.0 | [💾](web-auth/index.js) |
-| Function security with JWT                   | jwt-go                                    | [💾](jwt.go)            |
-| [Function traces and logs][7]                | CloudWatch Logs, X-Ray, AWS SDKs for Go   | [💾](aws.go)            |
-| [Notifications][8]                           | SNS                                       | [💾](notify.go)         |
-| [Databases and encryption at rest][9]        | DynamoDB, KMS                             | [💾](user.go)           |
+| Component                                    | Via                                     | Config, Code            |
+| -------------------------------------------- |-----------------------------------------|:-----------------------:|
+| [HTTP functions][1]                          | Lambda, API Gateway                     | [💾](dashboard.go)      |
+| [Worker functions (one-off and periodic)][2] | Lambda, Invoke API, CloudWatch Events   | [💾](worker.go)         |
+| [Development, packaging and deployment][3]   | make, go, aws-sam-local, CloudFormation | [⚙️](Makefile)          |
+| [Per-function environment and policies][4]   | Lambda, IAM                             | [⚙️](template.yml)      |
+| [Custom domains][5]                          | CloudFront, ACM                         | [⚙️](template.yml)      |
+| [Static web content][6]                      | S3, CloudFront, ACM                     | [⚙️](template.yml)      |
+| Static web security with Google OAuth 2.0    | CloudFront, Lambda@Edge, SSM Parameters | [💾](web-auth/index.js) |
+| Function security with JWT                   | jwt-go                                  | [💾](jwt.go)            |
+| [Function traces and logs][7]                | CloudWatch Logs, X-Ray, AWS SDKs for Go | [💾](aws.go)            |
+| [Notifications][8]                           | SNS                                     | [💾](notify.go)         |
+| [Databases and encryption at rest][9]        | DynamoDB, KMS                           | [💾](user.go)           |
 
 [1]: docs/http-functions.md
 [2]: docs/worker-functions.md

@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -x
 
 trap 'echo 🈲 ERROR' ERR
 
@@ -12,6 +12,7 @@ make deploy
 API_URL=$(aws cloudformation describe-stacks --output text --query 'Stacks[].Outputs[?OutputKey==`ApiUrl`].{Value:OutputValue}' --stack-name $APP)
 BUCKET=$(aws cloudformation describe-stack-resources --output text --query 'StackResources[?LogicalResourceId==`Bucket`].{Id:PhysicalResourceId}' --stack-name $APP)
 WEB_URL=$(aws cloudformation describe-stacks --output text --query 'Stacks[].Outputs[?OutputKey==`WebUrl`].{Value:OutputValue}' --stack-name $APP)
+WEB_BUCKET=$(aws cloudformation describe-stack-resources --output text --query 'StackResources[?LogicalResourceId==`WebBucket`].{Id:PhysicalResourceId}' --stack-name $APP)
 
 # test static site
 curl -s $WEB_URL | grep "My first gofaas"
@@ -36,5 +37,7 @@ aws lambda invoke --function-name $APP-WorkerPeriodicFunction --log-type Tail /d
 # export ACCESS_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QGdvZmFhcy5uZXQiLCJleHAiOjIwMDAwMDAwMDB9.8I4HeBoWs1rcXDclctz2qJaTrrRHm0aKZOCJtMfwaQE
 # make deploy PARAMS="ApiDomainName=api-$RAND.gofaas.net AuthDomainName=gofaas.net AuthHashKey=$AUTH_HASH_KEY OAuthClientId=foo OAuthClientSecret=bar WebDomainName=www-$RAND.gofaas.net"
 
+aws s3 rm --recursive s3://$WEB_BUCKET/
 aws cloudformation delete-stack --stack-name $APP
+aws cloudformation wait stack-delete-complete --stack-name $APP
 echo ✅ SUCCESS!

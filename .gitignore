@@ -9,3 +9,4 @@ main.zip
 out.yml
 node_modules
 public/js/env.js
+vendor/

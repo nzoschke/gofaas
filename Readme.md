@@ -235,6 +235,22 @@ gofaas-bucket-aykdokk6aek8            Bucket      AWS::S3::Bucket
 gofaas-UsersTable-1CYAQH3HHHRGW       UsersTable  AWS::DynamoDB::Table
 ```
 
+### Integration Testing
+
+We can verify the app functionality by creating an isolated testing stack, testing all the endpoints, then deleting the stack. The `ci.sh` script automates this:
+
+```console
+$ ./ci.sh
+aws cloudformation package ...
+aws cloudformation deploy ...
+...
+<title>My first gofaas/Vue app</title>
+"username": "test"
+{"ExecutedVersion":null,"FunctionError":null,"LogResult":null,"Payload":"","StatusCode":202}
+...
+✅ SUCCESS!
+```
+
 ## Docs
 
 Check out [the docs folder](docs/) where each component is explained in more detail.

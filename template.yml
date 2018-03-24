@@ -20,9 +20,7 @@ Globals:
         !If
         - WebDomainNameSpecified
         - !Sub "'https://${WebDomainName}'"
-        - !Sub
-          - "'http://${WebBucket}.${Endpoint}'"
-          - {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}
+        - Fn::Sub: ["'http://${WebBucket}.${Endpoint}'", {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}]
 
   Function:
     Environment:
@@ -102,9 +100,7 @@ Outputs:
       !If
       - WebDomainNameSpecified
       - !Sub https://${WebDomainName}
-      - !Sub
-        - http://${WebBucket}.${Endpoint}
-        - {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}
+      - Fn::Sub: ["http://${WebBucket}.${Endpoint}", {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}]
 
 Parameters:
   ApiDomainName:

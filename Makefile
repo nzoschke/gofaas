@@ -40,11 +40,13 @@ HANDLERS=$(addsuffix main.zip,$(wildcard handlers/*/))
 $(HANDLERS): handlers/%/main.zip: *.go handlers/%/main.go
 	cd ./$(dir $@) && GOOS=linux go build -o main . && zip -1r -xmain.go main.zip *
 
-JS_HANDLERS=$(addsuffix index.zip,$(wildcard web/handlers/*/))
-$(JS_HANDLERS): web/handlers/%/index.zip: web/handlers/%/index.js web/handlers/%/package.json
+HANDLERS_JS=$(addsuffix index.zip,$(wildcard web/handlers/*/))
+$(HANDLERS_JS): web/handlers/%/index.zip: web/handlers/%/index.js web/handlers/%/package.json
 	cd ./$(dir $@) && npm install && node-prune >/dev/null && zip -9qr index.zip *
 
-handlers: $(HANDLERS) $(JS_HANDLERS)
+handlers: handlers-go handlers-js
+handlers-go: $(HANDLERS)
+handlers-js: $(HANDLERS_JS)
 
 test: dep
 	go test -v ./...

@@ -56,21 +56,21 @@ func NewKMS() KMSAPI {
 	return c
 }
 
-// Lambda is an xray instrumented Lambda client
+// NewLambda is an xray instrumented Lambda client
 func NewLambda() *lambda.Lambda {
 	c := lambda.New(sess)
 	xray.AWS(c.Client)
 	return c
 }
 
-// S3 is an xray instrumented S3 client
+// NewS3 is an xray instrumented S3 client
 func NewS3() *s3.S3 {
 	c := s3.New(sess)
 	xray.AWS(c.Client)
 	return c
 }
 
-// SNS is an xray instrumented SNS client
+// NewSNS is an xray instrumented SNS client
 func NewSNS() *sns.SNS {
 	c := sns.New(sess)
 	xray.AWS(c.Client)

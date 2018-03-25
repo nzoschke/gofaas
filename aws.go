@@ -1,6 +1,8 @@
 package gofaas
 
 import (
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/kms"
@@ -10,7 +12,16 @@ import (
 	"github.com/aws/aws-xray-sdk-go/xray"
 )
 
-var sess = session.Must(session.NewSession())
+// AWS Clients that can be mocked for testing
+var (
+	DynamoDB = NewDynamoDB()
+	KMS      = NewKMS()
+	Lambda   = NewLambda()
+	S3       = NewS3()
+	SNS      = NewSNS()
+
+	sess = session.Must(session.NewSession())
+)
 
 func init() {
 	xray.Configure(xray.Config{
@@ -18,36 +29,49 @@ func init() {
 	})
 }
 
-// DynamoDB is an xray instrumented DynamoDB client
-func DynamoDB() *dynamodb.DynamoDB {
+// DynamoDBAPI is a subset of dynamodbiface.DynamoDBAPI
+type DynamoDBAPI interface {
+	DeleteItemWithContext(ctx aws.Context, input *dynamodb.DeleteItemInput, opts ...request.Option) (*dynamodb.DeleteItemOutput, error)
+	GetItemWithContext(ctx aws.Context, input *dynamodb.GetItemInput, opts ...request.Option) (*dynamodb.GetItemOutput, error)
+	PutItemWithContext(ctx aws.Context, input *dynamodb.PutItemInput, opts ...request.Option) (*dynamodb.PutItemOutput, error)
+}
+
+// KMSAPI is a subset of kmsiface.KMSAPI
+type KMSAPI interface {
+	DecryptWithContext(ctx aws.Context, input *kms.DecryptInput, opts ...request.Option) (*kms.DecryptOutput, error)
+	EncryptWithContext(ctx aws.Context, input *kms.EncryptInput, opts ...request.Option) (*kms.EncryptOutput, error)
+}
+
+// NewDynamoDB is an xray instrumented DynamoDB client
+func NewDynamoDB() DynamoDBAPI {
 	c := dynamodb.New(sess)
 	xray.AWS(c.Client)
 	return c
 }
 
-// KMS is an xray instrumented KMS client
-func KMS() *kms.KMS {
+// NewKMS is an xray instrumented KMS client
+func NewKMS() KMSAPI {
 	c := kms.New(sess)
 	xray.AWS(c.Client)
 	return c
 }
 
 // Lambda is an xray instrumented Lambda client
-func Lambda() *lambda.Lambda {
+func NewLambda() *lambda.Lambda {
 	c := lambda.New(sess)
 	xray.AWS(c.Client)
 	return c
 }
 
 // S3 is an xray instrumented S3 client
-func S3() *s3.S3 {
+func NewS3() *s3.S3 {
 	c := s3.New(sess)
 	xray.AWS(c.Client)
 	return c
 }
 
 // SNS is an xray instrumented SNS client
-func SNS() *sns.SNS {
+func NewSNS() *sns.SNS {
 	c := sns.New(sess)
 	xray.AWS(c.Client)
 	return c

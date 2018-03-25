@@ -335,7 +335,7 @@ Resources:
   WebAuthFunction:
     Properties:
       AutoPublishAlias: Live
-      CodeUri: ./web-auth/index.zip
+      CodeUri: ./web/handlers/auth/index.zip
       Environment: !Ref AWS::NoValue
       FunctionName: !Sub ${AWS::StackName}-WebAuthFunction
       Handler: index.handler

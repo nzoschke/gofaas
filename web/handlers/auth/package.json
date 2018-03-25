@@ -1,0 +1,21 @@
+{
+  "author": "Noah Zoschke",
+  "dependencies": {
+    "aws-xray-sdk": "^1.2.0",
+    "jwt-simple": "^0.5.1",
+    "passport-google-oauth20": "^1.0.0"
+  },
+  "devDependencies": {},
+  "description": "Google OAuth 2.0 via Lambda @ Edge",
+  "license": "Apache-2.0",
+  "main": "index.js",
+  "name": "gofaas-web-auth",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nzoschke/gofaas.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "0.9.0"
+}

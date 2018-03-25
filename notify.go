@@ -61,7 +61,7 @@ func notify(ctx context.Context, err error) {
 		return
 	}
 
-	_, err = SNS().PublishWithContext(ctx, &sns.PublishInput{
+	_, err = SNS.PublishWithContext(ctx, &sns.PublishInput{
 		Message:  aws.String(msg),
 		Subject:  aws.String(subj),
 		TopicArn: aws.String(topic),

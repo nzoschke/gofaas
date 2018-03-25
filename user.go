@@ -11,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/kms"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 )
 
 // User represents a user
@@ -34,8 +33,8 @@ func UserCreate(ctx context.Context, e events.APIGatewayProxyRequest) (events.AP
 		return responseEmpty, errors.WithStack(err)
 	}
 
-	u.ID = uuid.NewV4().String()
-	u.TokenPlain = uuid.NewV4().String()
+	u.ID = UUIDGen().String()
+	u.TokenPlain = UUIDGen().String()
 
 	if err := userPut(ctx, u); err != nil {
 		return responseEmpty, errors.WithStack(err)
@@ -119,7 +118,7 @@ func UserUpdate(ctx context.Context, e events.APIGatewayProxyRequest) (events.AP
 }
 
 func userGet(ctx context.Context, id string, decrypt bool) (*User, error) {
-	out, err := DynamoDB().GetItemWithContext(ctx, &dynamodb.GetItemInput{
+	out, err := DynamoDB.GetItemWithContext(ctx, &dynamodb.GetItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": &dynamodb.AttributeValue{
 				S: aws.String(id),
@@ -142,7 +141,7 @@ func userGet(ctx context.Context, id string, decrypt bool) (*User, error) {
 
 	// optionally decrypt the token ciphertext
 	if decrypt {
-		out, err := KMS().DecryptWithContext(ctx, &kms.DecryptInput{
+		out, err := KMS.DecryptWithContext(ctx, &kms.DecryptInput{
 			CiphertextBlob: u.Token,
 		})
 		if err != nil {
@@ -155,7 +154,7 @@ func userGet(ctx context.Context, id string, decrypt bool) (*User, error) {
 }
 
 func userDelete(ctx context.Context, u *User) error {
-	_, err := DynamoDB().DeleteItemWithContext(ctx, &dynamodb.DeleteItemInput{
+	_, err := DynamoDB.DeleteItemWithContext(ctx, &dynamodb.DeleteItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": &dynamodb.AttributeValue{
 				S: aws.String(u.ID),
@@ -170,7 +169,7 @@ func userDelete(ctx context.Context, u *User) error {
 func userPut(ctx context.Context, u *User) error {
 	// encrypt a token plaintext if set
 	if u.TokenPlain != "" {
-		out, err := KMS().EncryptWithContext(ctx, &kms.EncryptInput{
+		out, err := KMS.EncryptWithContext(ctx, &kms.EncryptInput{
 			Plaintext: []byte(u.TokenPlain),
 			KeyId:     aws.String(os.Getenv("KEY_ID")),
 		})
@@ -182,7 +181,7 @@ func userPut(ctx context.Context, u *User) error {
 		u.TokenPlain = ""
 	}
 
-	_, err := DynamoDB().PutItemWithContext(ctx, &dynamodb.PutItemInput{
+	_, err := DynamoDB.PutItemWithContext(ctx, &dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
 			"id": &dynamodb.AttributeValue{
 				S: aws.String(u.ID),
@@ -196,6 +195,7 @@ func userPut(ctx context.Context, u *User) error {
 		},
 		TableName: aws.String(os.Getenv("TABLE_NAME")),
 	})
+
 	return errors.WithStack(err)
 }
 

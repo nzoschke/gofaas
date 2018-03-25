@@ -33,7 +33,7 @@ func WorkCreate(ctx context.Context, e events.APIGatewayProxyRequest) (events.AP
 		return r, nil
 	}
 
-	out, err := Lambda().InvokeWithContext(ctx, &lambda.InvokeInput{
+	out, err := Lambda.InvokeWithContext(ctx, &lambda.InvokeInput{
 		FunctionName:   aws.String(os.Getenv("WORKER_FUNCTION_NAME")),
 		InvocationType: aws.String("Event"), // async
 	})
@@ -61,7 +61,7 @@ func Worker(ctx context.Context, e WorkerEvent) error {
 		return errors.WithStack(err)
 	}
 
-	_, err = S3().PutObjectWithContext(ctx, &s3.PutObjectInput{
+	_, err = S3.PutObjectWithContext(ctx, &s3.PutObjectInput{
 		Body:   bytes.NewReader(b),
 		Bucket: aws.String(os.Getenv("BUCKET")),
 		Key:    aws.String(uuid.NewV4().String()),
@@ -74,14 +74,14 @@ func WorkerPeriodic(ctx context.Context, e events.CloudWatchEvent) error {
 	log.Printf("WorkerPeriodic Event: %+v\n", e)
 
 	iter := s3manager.NewDeleteListIterator(
-		S3(),
+		S3,
 		&s3.ListObjectsInput{
 			Bucket: aws.String(os.Getenv("BUCKET")),
 		},
 		iterWithContext(ctx),
 	)
 
-	err := s3manager.NewBatchDeleteWithClient(S3()).Delete(ctx, iter)
+	err := s3manager.NewBatchDeleteWithClient(S3).Delete(ctx, iter)
 	return errors.WithStack(err)
 }
 

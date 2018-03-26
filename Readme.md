@@ -16,19 +16,20 @@ This project demonstrates a simple and clean foundation for Go in Lambda. You ca
 
 It demonstrates:
 
-| Component                                    | Via                                     | Config, Code            |
-| -------------------------------------------- |-----------------------------------------|:-----------------------:|
-| [HTTP functions][1]                          | Lambda, API Gateway                     | [💾](dashboard.go)      |
-| [Worker functions (one-off and periodic)][2] | Lambda, Invoke API, CloudWatch Events   | [💾](worker.go)         |
-| [Development, packaging and deployment][3]   | make, go, aws-sam-local, CloudFormation | [⚙️](Makefile)          |
-| [Per-function environment and policies][4]   | Lambda, IAM                             | [⚙️](template.yml)      |
-| [Custom domains][5]                          | CloudFront, ACM                         | [⚙️](template.yml)      |
-| [Static web content][6]                      | S3, CloudFront, ACM                     | [⚙️](template.yml)      |
-| Static web security with Google OAuth 2.0    | CloudFront, Lambda@Edge, SSM Parameters | [💾](web-auth/index.js) |
-| Function security with JWT                   | jwt-go                                  | [💾](jwt.go)            |
-| [Function traces and logs][7]                | CloudWatch Logs, X-Ray, AWS SDKs for Go | [💾](aws.go)            |
-| [Notifications][8]                           | SNS                                     | [💾](notify.go)         |
-| [Databases and encryption at rest][9]        | DynamoDB, KMS                           | [💾](user.go)           |
+| Component                                         | Via                                     | Config, Code            |
+| ------------------------------------------------- |-----------------------------------------|:-----------------------:|
+| [HTTP functions][1]                               | Lambda, API Gateway                     | [💾](dashboard.go)      |
+| [Worker functions (one-off and periodic)][2]      | Lambda, Invoke API, CloudWatch Events   | [💾](worker.go)         |
+| [Development, packaging and deployment][3]        | make, go, aws-sam-local, CloudFormation | [⚙️](Makefile)          |
+| [Per-function environment and policies][4]        | Lambda, IAM                             | [⚙️](template.yml)      |
+| [Custom domains][5]                               | CloudFront, ACM                         | [⚙️](template.yml)      |
+| [Static web content][6]                           | S3, CloudFront, ACM                     | [⚙️](template.yml)      |
+| [Static web security with Google OAuth 2.0][7]    | CloudFront, Lambda@Edge, SSM Parameters | [💾](web-auth/index.js) |
+| [Function security with Javascript Web Tokens][8] | jwt-go                                  | [💾](jwt.go)            |
+| [Function traces and logs][9]                     | CloudWatch Logs, X-Ray, AWS SDKs for Go | [💾](aws.go)            |
+| [Notifications][10]                               | SNS                                     | [💾](notify.go)         |
+| [Databases and encryption at rest][11]            | DynamoDB, KMS                           | [💾](user.go)           |
+| [Testing with mock AWS clients][12]               | Go interfaces, aws-sdk-go               | [💾](aws_test.go)       |
 
 [1]: docs/http-functions.md
 [2]: docs/worker-functions.md
@@ -36,9 +37,12 @@ It demonstrates:
 [4]: docs/per-function-policies.md
 [5]: docs/custom-domains.md
 [6]: docs/static-sites.md
-[7]: docs/traces-logs.md
-[8]: docs/notifications.md
-[9]: docs/databases-encryption.md
+[7]: docs/lambda-at-edge-oauth.md
+[8]: docs/auth-jwt.md
+[9]: docs/traces-logs.md
+[10]: docs/notifications.md
+[11]: docs/databases-encryption.md
+[12]: docs/mock-aws-client.md
 
 What's remarkable is how little work is required to get all functionality for our app. We don't need a framework, platform-as-a-service, or even any 3rd party software-as-a-service. And no, we don't need servers. By standing on the shoulders of Go and AWS, all the undifferentiated heavy lifting is managed for us.
 

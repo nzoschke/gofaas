@@ -10,17 +10,15 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
 func TestUserCreate(t *testing.T) {
-	DynamoDB = &MockDynamoDB{}
-
-	KMS = &MockKMS{
-		EncryptOutput: &kms.EncryptOutput{
-			CiphertextBlob: []byte("ciphertext"),
-		},
+	DynamoDB = &MockDynamoDB{
+		GetItemOutput: &dynamodb.GetItemOutput{},
 	}
+
+	KMS = &MockKMS{}
 
 	UUIDGen = func() uuid.UUID {
 		return uuid.Must(uuid.FromString("26f0dc9f-4483-4b65-8724-3d1598ff6d14"))

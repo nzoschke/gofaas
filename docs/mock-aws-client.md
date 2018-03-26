@@ -17,13 +17,13 @@ type DynamoDBAPI interface {
 	UpdateItemWithContext(aws.Context, *dynamodb.UpdateItemInput, ...request.Option) (*dynamodb.UpdateItemOutput, error)
     ...
 ```
-> From aws-sdk-go (dynamodbiface/interface.go)[https://github.com/aws/aws-sdk-go/blob/master/service/dynamodb/dynamodbiface/interface.go]
+> From aws-sdk-go [dynamodbiface/interface.go](https://github.com/aws/aws-sdk-go/blob/master/service/dynamodb/dynamodbiface/interface.go)
 
 There are close to 100 signatures in the interface that map to the 35+ DynamoDB API methods and utility functions for interacting with them.
 
 The SDK satisfies the interface with methods that map to the real DynamoDB API. For example we can see how the `GetItemWithContext` takes a `dynamodb.GetItemInput` struct, crafts an HTTP POST with a `GetItem` header and a JSON body with the table and key name, and converts the HTTP response to a `dynamodb.GetItemOutput` struct.
 
-> See aws-sdk-go (dynamodb/api)[https://github.com/aws/aws-sdk-go/blob/master/service/dynamodb/api.go##L1745]
+> See aws-sdk-go [dynamodb/api](https://github.com/aws/aws-sdk-go/blob/master/service/dynamodb/api.go##L1745)
 
 ## Go Code -- Interface and Real Client
 

@@ -226,7 +226,7 @@ First we need to set up our OAuth 2.0 app on Google. Browse to the [Google API C
 
 <p align="center">
   <img src="img/google-oauth.png" alt="Google OAuth 2.0 App" width="440" />
-  <img src="img/google+" alt="Google+ API" width="440" />
+  <img src="img/google+.png" alt="Google+ API" width="440" />
 </p>
 
 For more information see the [Using OAuth 2.0 for Web Server Applications](https://developers.google.com/identity/protocols/OAuth2WebServer) developer guide.

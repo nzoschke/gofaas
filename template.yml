@@ -405,7 +405,6 @@ Resources:
 
   WebBucket:
     Properties:
-      AccessControl: PublicRead
       BucketName: !If [WebDomainNameSpecified, !Ref WebDomainName, !Sub "${AWS::StackName}-webbucket-${AWS::AccountId}"]
       WebsiteConfiguration:
         ErrorDocument: 404.html

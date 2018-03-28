@@ -5,22 +5,164 @@ Deploying static web content is a solved problem thanks to S3 and CloudFront. Ho
 
 Previously we would add a "proxy server" -- an HTTP server like nginx, plus a load balancer and a private network -- to get the access control we need. While this adds security, we lose a lot of simplicity and reliability.
 
-What we need instead is a way to configure access with the proxy we already have: CloudFront. AWS offers a function-as-a-service approach here with Lambda@Edge.
+What we need instead is a way to configure access with the "proxy" we already have: CloudFront. AWS offers a function-as-a-service approach here with Lambda@Edge.
 
-Lambda@Edge is a variant of Lambda that runs "inside" CloudFront. The Lambda function is given an event that describes an HTTP request, and it returns an event that that controls the response to send to the client. This unlocks a lot of options. We can modify the request to the origin and change the body, add headers and/or rewrite the URL. We can modify the response to the users and change the body or add headers. 
+Lambda@Edge is a variant of Lambda that runs "inside" CloudFront. The Lambda function is given an event that describes an HTTP request, and it returns an event that that controls the response to send to the client. This unlocks a lot of options. We can modify the body of the request to the origin, add headers and/or rewrite the URL. We can also modify the response to the users and change the body or add headers. 
 
-This is perfect for authentication. Instead of always responding with our content from S3, we can first check the request for an authorization cookie and redirect to an OAuth provider if missing. We can then handle the OAuth callback and set a cookie for the user. Then subsequent requests will pass the auth check and we can response with content from S3. All with a simple Lambda function.
+This is perfect for authentication. Instead of always responding with our content from S3, we can first check the request for an authorization cookie and redirect to an OAuth provider if missing. We can then handle the OAuth callback and set a cookie for the user. Subsequent requests will pass the auth check and we can request and return the content from S3. All with a simple Lambda function.
 
-Let's set this all up for our app...
+Let's set this up for our app...
+
+## JavaScript Code -- Lambda@Edge Handler
+
+Lambda@Edge only supports the `Node.js 6.10` runtime, presumably to increase the security and reliability when running "inside" CloudFront. So let's start with the general shape of a JavaScript handler function:
+
+```js
+var Params = {
+    AuthDomainName: "gofaas.net",
+    AuthHashKey: "43Z647ntcQ8L5LfNi2HlW3XXJYz5x9Y/EYv6C7gdajo=",
+    OAuthClientId: "347...apps.googleusercontent.com",
+    OAuthClientSecret: "akc...",
+    Scope: [
+        "https://www.googleapis.com/auth/plus.login",
+        "https://www.googleapis.com/auth/userinfo.email",
+    ],
+};
+
+exports.handler = (event, context, callback) => {
+    var request = event.Records[0].cf.request;
+
+    // Handle OAuth callback, e.g. /auth?code=...&session_state=...
+    // Exchange for OAuth token and profile
+    // Set access_token cookie and redirect to /
+    if (request.uri === "/auth")
+        return auth(request, callback);
+
+    try {
+        // Decode token
+        var key = new Buffer(Params.AuthHashKey, "base64");
+        jwt.decode(requestCookie(request, "access_token"), key);
+
+        // Make request to origin
+        callback(null, request);
+    }
+    catch (err) {
+        // Token is invalid
+        // Start OAuth flow with redirect to https://accounts.google.com/signin/oauth?client_id=...
+        auth(request, callback);
+    }
+};
+```
+> From [web/handlers/auth/index.js](web/handlers/auth/index.js)
+
+We expect Lambda@edge to invoke the `exports.handler` function with an `event` that describes the HTTP request and a `callback` that we call with an event that describes our HTTP response. 
+
+The request event includes HTTP headers, which enables us to check for a cookie. If the cookie invalid we will call `callback` with redirect response event:
+
+```json
+{
+    status: "302",
+    statusDescription: "Found",
+    headers: {
+        location: [{
+            key: "Location",
+            value: "https://accounts.google.com/signin/oauth?client_id=...",
+        }],
+    },
+}
+```
+
+If the cookie is valid we will call `callback` with the original request to the origin:
+
+```js
+callback(null, event.Records[0].cf.request;);
+```
+
+The request event also contains the request URL and query string, which enables us to process the OAuth callback. Lambda@Edge allows us to make external HTTP requests in the handler, so we can ask Google exchange the OAuth callback code for a the user's OAuth token and profile (name and email).
+
+For full details about the event objects, see the [Lambda@Edge Event Structure](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-event-structure.html) guide.
+
+As we can see, Lambda@Edge offers everything we need to handle OAuth.
+
+## JavaScript Code -- Google OAuth 2.0
+
+Web authentication is nothing new to the Node.js ecosystem. Here we turn to the [Passport](http://www.passportjs.org/) library which offers "strategies" for many auth providers like Auth0, Google, GitHub and more. For this example we will use the [passport-google-oauth2](https://github.com/jaredhanson/passport-google-oauth2) package which implements Google OAuth 2.0 auth.
+
+First we need to set up our OAuth 2.0 app on Google. Browse to the [Google API Credentials](https://console.developers.google.com/apis/credentials) page to create a project and "OAuth client ID" credentials for a "web application". Then browse to the [Google+ API](https://console.developers.google.com/apis/library/plus.googleapis.com/) library page to enable Google+ as an identity and email scope provider.
+
+<p align="center">
+  <img src="img/google-oauth.png" alt="Google OAuth 2.0 App" width="440" />
+  <img src="img/google+.png" alt="Google+ API" width="440" />
+</p>
+
+For more information see the [Using OAuth 2.0 for Web Server Applications](https://developers.google.com/identity/protocols/OAuth2WebServer) developer guide.
+
+Next it takes a bit of hacking to use Passport outside of the [Express](https://expressjs.com/) web framework, but thanks to it's flexibility it is possible. We instantiate the `GoogleStrategy` class with our OAuth Client ID and secret, and hook up the strategy callbacks for auth redirect, success or failure to our Lambda response callback.
+
+```js
+var GoogleStrategy = require("passport-google-oauth20").Strategy;
+var querystring = require("querystring");
+
+var auth = (request, callback) => {
+    var host = request.headers.host[0].value;
+    var query = querystring.parse(request.querystring);
+
+    var opts = {
+        clientID: Params.OAuthClientId,
+        clientSecret: Params.OAuthClientSecret,
+        callbackURL: `https://${host}/auth`,
+    };
+
+    var s = new GoogleStrategy(opts, (token, tokenSecret, profile, done) => {
+        profile.emails.forEach((email) => {
+            if (email.value.endsWith(Params.AuthDomainName)) {
+                return done(null, profile); // call success with profile
+            }
+        });
+
+        // call fail with warning
+        done(null, false, {
+            name: "UserError",
+            message: "Email is not a member of the domain",
+            status: "401",
+        });
+    });
+
+    s.error = (err) => {
+        callback(null, responseError(err)); // respond with 401
+    };
+
+    s.fail = (warning) => {
+        callback(null, responseError(warning)); // respond with 401
+    };
+
+    s.redirect = (url) => {
+        callback(null, responseRedirect(url)); // respond with 302 to begin OAuth flow
+    };
+
+    s.success = (profile) => {
+        var exp = new Date(new Date().getTime() + 86400000); // 1 day from now
+        var key = new Buffer(Params.AuthHashKey, "base64");
+
+        var token = jwt.encode({
+            exp: Math.floor(exp / 1000),
+            sub: profile.emails[0].value,
+        }, key);
+
+        callback(null, responseCookie(token, exp, `https://${host}/`)); // respond with 302 to set cookie and redirect to /
+    };
+
+    s.authenticate({ query }, { scope: Params.Scope });
+};
+```
 
 ## AWS Config
 
-We start with the the S3 and CloudFront config from the [static sites](static-sites.md) example, and make a few changes.
+Now we need to configure AWS for our static site and Lambda@Edge handler. We can start with the S3 and CloudFront config from the [static sites](static-sites.md) example, and make a few changes.
 
-First we need to guarantee that our S3 bucket is only accessible through CloudFront. First we make sure to remove any S3 config for public access or a website configuration. Then we add an [S3 Bucket Policy](https://docs.aws.amazon.com/AmazonS3/latest/dev/example-bucket-policies.html) that only grants read access to a [CloudFront Origin Access Identity](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html) and a CloudFront `S3OriginConfig`. This guarantees that our content is only available via the CloudFront distribution and not over the `s3-website-us-east-1.amazonaws.com` or `s3.amazonaws.com` style URLs.
+First we need to guarantee that our S3 bucket is only accessible through CloudFront. So we make sure to remove any S3 config for public access. Then we add an [S3 Bucket Policy](https://docs.aws.amazon.com/AmazonS3/latest/dev/example-bucket-policies.html) that only grants read access to a [CloudFront Origin Access Identity](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html) and a CloudFront `S3OriginConfig`. This guarantees that our content is only available via the CloudFront distribution and not over the `s3-website-us-east-1.amazonaws.com` or `s3.amazonaws.com` style URLs.
 
 Next we associate a Lambda function with our distribution. Here we configure a `viewer-request` event to invoke a function when CloudFront receives a request from the viewer. This is the earliest event possible, and gives us the ability to redirect and/or block requests from the origin based on our auth flow.
-
 
 ```yaml
 ---
@@ -35,7 +177,7 @@ Resources:
         IndexDocument: index.html
     Type: AWS::S3::Bucket
 
-  WebBucketPolicyPrivate:
+  WebBucketPolicy:
     Properties:
       Bucket: !Ref WebBucket
       PolicyDocument:
@@ -47,6 +189,11 @@ Resources:
             Resource: !Sub arn:aws:s3:::${WebBucket}/*
             Sid: GetObjectsCloudFront
     Type: AWS::S3::BucketPolicy
+
+  WebCertificate:
+    Properties:
+      DomainName: !Ref WebDomainName
+    Type: AWS::CertificateManager::Certificate
 
   WebDistribution:
     Properties:
@@ -91,103 +238,15 @@ Resources:
 ```
 > From [template.yml](template.yml)
 
-## JavaScript Code -- Auth Config
+This is a remarkable setup. Our static content in S3 can not be accessed except through CloudFront and our Lambda@Edge function. We get the same behavior of a proxy server, with single Lambda function.
 
-Lambda@Edge has a few caveats, presumably to increase the security and reliability when running "inside" CloudFront. It only supports the `Node.js 6.10` runtime and it doesn't allow environment variables.
+## JavaScript Code - JSON Web Tokens
 
-For auth there are some obvious config variables: the OAuth client ID and secret, the domain we whitelist (e.g. gofaas.net) and shared secret for signing tokens. We could hard code these into our JS handler, but we can also harness the full power of Lambda@Edge and interact with any other AWS services. So we turn to the [AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-paramstore.html) to store and access secrets.
+The final concern is what we give a user to prove that they are authenticated. For this we turn to the industry standard for representing claims securely between two parties: [JSON Web Tokens](https://jwt.io/) (JWT).
 
-Here we define a global variable for our `Params`. On "cold starts" we  ask SSM for the parameters. Note that our Lambda@Edge functions run all around the world, so we need to take care to talk to SSM in the region it was configured. Subsequent requests will "re-enter" the same handler and get the config without hitting SSM.
+With JWT we use a secret "hash key" to sign a JSON "payload" in our Lambda function and give an encoded version of the JSON -- a "token" -- to the user in a cookie. The user will present the token on every request and the auth function will validate it. No 3rd party can create a valid token without the secret hash key, so we are confident a user with a valid token was authorized by us.
 
-```js
-"use strict";
-var AWSXRay = require("aws-xray-sdk");
-var AWS = AWSXRay.captureAWS(require("aws-sdk"));
-
-// global var reused across invocations
-var Params = {
-    AuthDomainName: undefined,
-    AuthHashKey: undefined,
-    OAuthClientId: undefined,
-    OAuthClientSecret: undefined,
-    Scope: [
-        "https://www.googleapis.com/auth/plus.login",
-        "https://www.googleapis.com/auth/userinfo.email",
-    ],
-};
-
-var paramsGet = (context) => (new Promise(function (fulfill, reject) {
-    // immediate return cached params if defined
-    if (Params.AuthDomainName !== undefined) return fulfill();
-
-    var path = "/gofaas/";
-    var region = "us-east-1";
-
-    new AWS.SSM({ region })
-        .getParametersByPath({ Path: path })
-        .promise()
-        .then(data => fulfill(
-            data.Parameters.forEach((p) => {
-                Params[p.Name.slice(path.length)] = p.Value;
-            })
-        ))
-        .catch(err => (reject(err)));
-}));
-
-exports.handler = (event, context, callback) => {
-    paramsGet(context)
-        .then(() => {
-            // auth logic here
-        });
-};
-```
-
-## JavaScript Code -- Cookies and JWT
-
-Our auth scheme depends on an authorized user presenting a valid JavasScript Web Token (JWT) via a cookie.
-
-Our function is invoked with an event that describes the request, including headers. This makes it easy to read cookies:
-
-```js
-var requestCookie = (request, name) => {
-    var headers = request.headers;
-
-    var cookies = {};
-    if (headers.cookie) {
-        headers.cookie[0].value.split(";").forEach((cookie) => {
-            if (cookie) {
-                const parts = cookie.split("=");
-                cookies[parts[0].trim()] = parts[1].trim();
-            }
-        });
-    }
-
-    return cookies[name];
-};
-```
-
-Our function returns a response with a status code and headers. This makes it easy to set a cookie:
-
-```js
-var responseCookie = (token, exp, location) => {
-    return = {
-        status: "302",
-        statusDescription: "Found",
-        headers: {
-            location: [{
-                key: "Location",
-                value: location,
-            }],
-            "set-cookie": [{
-                key: "Set-Cookie",
-                value: `access_token=${token}; expires=${exp.toUTCString()}; path=/`,
-            }],
-        },
-    }
-};
-```
-
-We can use the [jwt-simple](https://github.com/hokaccha/node-jwt-simple) Node.js library to encode and decode JWT tokens, along with the `AuthHashKey` config from above:
+We can use the [jwt-simple](https://github.com/hokaccha/node-jwt-simple) Node.js library to encode and decode JWT tokens:
 
 ```js
 var jwt = require("jwt-simple");
@@ -216,87 +275,21 @@ var decode = (request) => {
 };
 ```
 
-Now we just have to wire up the auth request and response flow that reads/writes a cookie and encodes/decodes a JWT.
+In addition to authorizing access to the static content, a user can send the JWT in an `Authorization` HTTP header to an API. If we share the hash key between the web Lambda@Edge function and API Lambda functions, we now have a strategy for securing API access from a web app. See the [Function security with JSON Web Tokens](docs/auth-jwt.md) guide for more information.
 
-## JavaScript Code -- Google OAuth 2.0
+For more information about JWT, see the [Introduction to JSON Web Tokens](https://jwt.io/introduction/) guide.
 
-Web authentication is nothing new in the Node.js ecosystem. Here we turn to the [Passport](http://www.passportjs.org/) library which offers "strategies" for many auth providers like Auth0, Google, GitHub and more. For this example we will use the [passport-google-oauth2](https://github.com/jaredhanson/passport-google-oauth2) package which implements Google OAuth 2.0 auth.
+## Summary
 
-First we need to set up our OAuth 2.0 app on Google. Browse to the [Google API Credentials](https://console.developers.google.com/apis/credentials) page to create a project and "OAuth client ID" credentials for a "web application". Then browse to the [Google+ API](https://console.developers.google.com/apis/library/plus.googleapis.com/) library page to enable Google+ as an identity and email scope provider.
+S3, CloudFront, Lambda@Edge and JWT allows us to:
 
-<p align="center">
-  <img src="img/google-oauth.png" alt="Google OAuth 2.0 App" width="440" />
-  <img src="img/google+.png" alt="Google+ API" width="440" />
-</p>
+- Block static content from unauthorized users
+- Perform the Google OAuth flow "inside" CloudFront
+- Secure API calls from a static web app to an API
 
-For more information see the [Using OAuth 2.0 for Web Server Applications](https://developers.google.com/identity/protocols/OAuth2WebServer) developer guide.
+We no longer have to worry about:
 
-Next it takes a bit of hacking to use Passport outside of the [Express](https://expressjs.com/) web framework, but thanks to it's flexibility it is possible. We instantiate the `GoogleStrategy` class with our OAuth Client ID and secret, and hook up the strategy callbacks for auth redirect, success or failure to our Lambda response callback.
+- Running HTTP proxy servers
+- Adding OAuth middleware to our web app code
 
-```js
-var GoogleStrategy = require("passport-google-oauth20").Strategy;
-var querystring = require("querystring");
-
-var Params = {
-    AuthDomainName: undefined,
-    AuthHashKey: undefined,
-    OAuthClientId: undefined,
-    OAuthClientSecret: undefined,
-    Scope: [
-        "https://www.googleapis.com/auth/plus.login",
-        "https://www.googleapis.com/auth/userinfo.email",
-    ],
-};
-
-var auth = (request, callback) => {
-    var host = request.headers.host[0].value;
-    var query = querystring.parse(request.querystring);
-
-    var opts = {
-        clientID: Params.OAuthClientId,
-        clientSecret: Params.OAuthClientSecret,
-        callbackURL: `https://${host}/auth`,
-    };
-
-    var s = new GoogleStrategy(opts, (token, tokenSecret, profile, done) => {
-        profile.emails.forEach((email) => {
-            if (email.value.endsWith(Params.AuthDomainName)) {
-                return done(null, profile); // call success with profile
-            }
-        });
-
-        // call fail with warning
-        done(null, false, {
-            name: "UserError",
-            message: "Email is not a member of the domain",
-            status: "401",
-        });
-    });
-
-    s.error = (err) => {
-        callback(null, responseError(err));
-    };
-
-    s.fail = (warning) => {
-        callback(null, responseError(warning));
-    };
-
-    s.redirect = (url) => {
-        callback(null, responseRedirect(url));
-    };
-
-    s.success = (profile) => {
-        var exp = new Date(new Date().getTime() + 86400000); // 1 day from now
-        var key = new Buffer(Params.AuthHashKey, "base64");
-
-        var token = jwt.encode({
-            exp: Math.floor(exp / 1000),
-            sub: profile.emails[0].value,
-        }, key);
-
-        callback(null, responseCookie(token, exp, `https://${host}/`));
-    };
-
-    s.authenticate({ query }, { scope: Params.Scope });
-};
-```
+Our app is easier to build and more secure with a Lambda@Edge function.

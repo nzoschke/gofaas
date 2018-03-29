@@ -224,6 +224,7 @@ Resources:
       CodeUri: ./handlers/user-create/main.zip
       Environment:
         Variables:
+          AUTH_HASH_KEY: !Ref AuthHashKey
           KEY_ID: !Ref Key
           TABLE_NAME: !Ref UsersTable
       Events:
@@ -253,6 +254,7 @@ Resources:
       CodeUri: ./handlers/user-delete/main.zip
       Environment:
         Variables:
+          AUTH_HASH_KEY: !Ref AuthHashKey
           KEY_ID: !Ref Key
           TABLE_NAME: !Ref UsersTable
       Events:
@@ -276,6 +278,7 @@ Resources:
       CodeUri: ./handlers/user-read/main.zip
       Environment:
         Variables:
+          AUTH_HASH_KEY: !Ref AuthHashKey
           KEY_ID: !Ref Key
           TABLE_NAME: !Ref UsersTable
       Events:
@@ -301,6 +304,7 @@ Resources:
       CodeUri: ./handlers/user-update/main.zip
       Environment:
         Variables:
+          AUTH_HASH_KEY: !Ref AuthHashKey
           KEY_ID: !Ref Key
           TABLE_NAME: !Ref UsersTable
       Events:

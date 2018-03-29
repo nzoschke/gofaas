@@ -1,4 +1,4 @@
-# Static Website Security 
+# Static Website Security
 ### With Lambda@Edge and Google OAuth 2.0
 
 Deploying static web content is a solved problem thanks to S3 and CloudFront. However this design has one big side effect: the static content is publicly available to the entire internet. What if our application is more sensitive like an admin app or an internal business tool and we need to restrict access to only people that belong to our company?

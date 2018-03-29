@@ -8,10 +8,6 @@ clean:
 	rm -f $(wildcard handlers/*/main.zip)
 	rm -f $(wildcard web/handlers/*/index.zip)
 
-dep:
-	go get -u github.com/golang/dep/cmd/dep
-	dep ensure
-
 deploy: BUCKET = pkgs-$(shell aws sts get-caller-identity --output text --query 'Account')-$(AWS_DEFAULT_REGION)
 deploy: PARAMS ?= =
 deploy: handlers
@@ -37,7 +33,7 @@ dev-watch:
 	watchexec -f '*.go' 'make -j handlers'
 
 HANDLERS=$(addsuffix main.zip,$(wildcard handlers/*/))
-$(HANDLERS): handlers/%/main.zip: *.go handlers/%/main.go
+$(HANDLERS): handlers/%/main.zip: *.go handlers/%/main.go vendor
 	cd ./$(dir $@) && GOOS=linux go build -o main . && zip -1r -xmain.go main.zip *
 
 HANDLERS_JS=$(addsuffix index.zip,$(wildcard web/handlers/*/))
@@ -48,5 +44,9 @@ handlers: handlers-go handlers-js
 handlers-go: $(HANDLERS)
 handlers-js: $(HANDLERS_JS)
 
-test: dep
+test: vendor
 	go test -v ./...
+
+vendor:
+	go get github.com/golang/dep/cmd/dep
+	dep ensure

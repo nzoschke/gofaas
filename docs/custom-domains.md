@@ -71,7 +71,7 @@ The final step is to set up a DNS CNAME from our `ApiDomainName` parameter (e.g.
 
 If we are using Route53, this is easy to do through the UI:
 
-<p align="center"><img src="img/route53.png" alt="alt text" width="410" /></p>
+<p align="center"><img src="img/route53.png" alt="Route 53" width="410" /></p>
 
 In this case we could consider automating DNS setup by adding an conditional `AWS::Route53::RecordSet` resource to our template...
 

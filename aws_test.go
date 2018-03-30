@@ -1,6 +1,8 @@
 package gofaas
 
 import (
+	"encoding/base64"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -27,15 +29,17 @@ func (m *MockDynamoDB) PutItemWithContext(ctx aws.Context, input *dynamodb.PutIt
 }
 
 // MockKMS is a mock KMSAPI implementation
-type MockKMS struct {
-	DecryptOutput *kms.DecryptOutput
-	EncryptOutput *kms.EncryptOutput
-}
+type MockKMS struct{}
 
 func (m *MockKMS) DecryptWithContext(ctx aws.Context, input *kms.DecryptInput, opts ...request.Option) (*kms.DecryptOutput, error) {
-	return m.DecryptOutput, nil
+	s, _ := base64.StdEncoding.DecodeString(string(input.CiphertextBlob))
+	return &kms.DecryptOutput{
+		Plaintext: s,
+	}, nil
 }
 
 func (m *MockKMS) EncryptWithContext(ctx aws.Context, input *kms.EncryptInput, opts ...request.Option) (*kms.EncryptOutput, error) {
-	return m.EncryptOutput, nil
+	return &kms.EncryptOutput{
+		CiphertextBlob: []byte(base64.StdEncoding.EncodeToString(input.Plaintext)),
+	}, nil
 }

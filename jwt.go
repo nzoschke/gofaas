@@ -39,7 +39,7 @@ func JWTClaims(e events.APIGatewayProxyRequest, claims jwt.Claims) (events.APIGa
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return key, nil
 	})
-	if !token.Valid {
+	if token != nil && !token.Valid {
 		err = errors.New("Invalid token")
 	}
 	if err != nil {

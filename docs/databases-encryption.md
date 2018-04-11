@@ -19,7 +19,9 @@ But of course it poses some challenges.
 
 DynamoDB not as easy to use as a developer. It lacks transactions so if we need to update multiple records atomically, our code has to handle locking, updating, then unlocking. It has a simplistic indexing model so we have to design our table keys and limited indexes carefully to avoid scanning the entire table. It's scaling model isn't perfect, so there are scenarios where DynamoDB will be inefficient and expensive at medium to large scale.
 
-All that said, for many use-cases DynamoDB is indeed a "Simple Table" and a good default choice to add to our app.
+Perhaps [AWS Aurora Serverless](https://aws.amazon.com/blogs/aws/in-the-works-amazon-aurora-serverless/) will offer the best of both worlds: a SQL database that handles many connections and scales transparently. However, at time of writing it is in preview, so not available for day-to-day use.
+
+So for many use-cases DynamoDB is indeed a "simple table" and a good default choice to add to our app.
 
 With any data store, the strategy for storing sensitive data like API keys, credit cards, or personal information is uncontroversial. We opt to use the AWS Key Management Service (KMS) to encrypt data.
 

@@ -1,4 +1,6 @@
-var app = new Vue({ // eslint-disable-line
+/* global API_URL, Vue */
+
+new Vue({
     created: function () {
         this.access_token = this.getCookie("access_token");
     },

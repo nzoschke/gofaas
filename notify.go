@@ -12,13 +12,13 @@ import (
 )
 
 // HandlerAPIGateway is an API Gateway Proxy Request handler function
-type HandlerAPIGateway func(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)
+type HandlerAPIGateway func(context.Context, events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)
 
 // HandlerCloudWatch is a CloudWatchEvent handler function
-type HandlerCloudWatch func(ctx context.Context, e events.CloudWatchEvent) error
+type HandlerCloudWatch func(context.Context, events.CloudWatchEvent) error
 
 // HandlerWorker is a Worker handler function
-type HandlerWorker func(ctx context.Context, e WorkerEvent) error
+type HandlerWorker func(context.Context, WorkerEvent) error
 
 // NotifyAPIGateway wraps a handler func and sends an SNS notification on error
 func NotifyAPIGateway(h HandlerAPIGateway) HandlerAPIGateway {

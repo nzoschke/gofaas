@@ -86,7 +86,7 @@ We can use`make`, the ubiquitous tool for generating binaries from source files 
 ```console
 $ watchexec -f '*.go' 'make -j handlers'
 ```
-> From [Makefile](Makefile)
+> From [Makefile](../Makefile)
 
 Again we find a simple solution with great dev/prod parity.
 
@@ -100,7 +100,7 @@ The release step is accomplished with the `sam package` command. This zips the h
 $ aws cloudformation package --output-template-file out.yml --s3-bucket $(BUCKET) --template-file template.yml
 $ aws cloudformation deploy --capabilities CAPABILITY_NAMED_IAM --template-file out.yml --stack-name gofaas
 ```
-> From [Makefile](Makefile)
+> From [Makefile](../Makefile)
 
 There's a lot of functionality baked into these commands like uploading package as efficiently as possible, creating new resources in dependency order, and safely rolling back updates on a failure. But it's all managed by CloudFormation.
 

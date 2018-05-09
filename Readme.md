@@ -53,7 +53,7 @@ We just need an expert [CloudFormation config file](template.yml) and a simple [
 This project uses :
 
 - [AWS CLI](https://aws.amazon.com/cli/)
-- [AWS SAM Local](https://docs.aws.amazon.com/lambda/latest/dg/test-sam-local.html)
+- [AWS SAM CLI](https://github.com/awslabs/aws-sam-cli)
 - [Docker CE](https://www.docker.com/community-edition)
 - [Go 1.10](https://golang.org/)
 - [watchexec](https://github.com/mattgreen/watchexec)
@@ -61,8 +61,8 @@ This project uses :
 Install the CLI tools and Docker CE
 
 ```console
-$ brew install awscli go watchexec
-$ go get -u github.com/awslabs/aws-sam-local
+$ brew install awscli go node python@2 watchexec
+$ pip2 install aws-sam-cli
 $ open https://store.docker.com/search?type=edition&offering=community
 ```
 
@@ -74,25 +74,27 @@ $ open https://store.docker.com/search?type=edition&offering=community
 $ aws --version
 aws-cli/1.14.40 Python/3.6.4 Darwin/17.4.0 botocore/1.8.44
 
-$ aws-sam-local -v
-sam version snapshot
+$  -v
+SAM CLI, version 0.3.0
 
 $ docker version
 Client:
- Version:	17.12.0-ce
- API version:	1.35
- Go version:	go1.9.2
- Git commit:	c97c6d6
- Built:	Wed Dec 27 20:03:51 2017
+ Version:	18.03.0-ce
+ API version:	1.37
+ Go version:	go1.9.4
+ Git commit:	0520e24
+ Built:	Wed Mar 21 23:06:22 2018
  OS/Arch:	darwin/amd64
+ Experimental:	false
+ Orchestrator:	swarm
 
 Server:
  Engine:
-  Version:	17.12.0-ce
-  API version:	1.35 (minimum version 1.12)
-  Go version:	go1.9.2
-  Git commit:	c97c6d6
-  Built:	Wed Dec 27 20:12:29 2017
+  Version:	18.03.0-ce
+  API version:	1.37 (minimum version 1.12)
+  Go version:	go1.9.4
+  Git commit:	0520e24
+  Built:	Wed Mar 21 23:14:32 2018
   OS/Arch:	linux/amd64
   Experimental:	true
 

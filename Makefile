@@ -28,7 +28,7 @@ deploy-static: web/static/index.html
 dev:
 	make -j dev-watch dev-sam
 dev-sam:
-	aws-sam-local local start-api -n env.json -s web/static
+	sam local start-api -n env.json -s web/static
 dev-watch:
 	watchexec -f '*.go' 'make -j handlers'
 

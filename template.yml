@@ -170,7 +170,7 @@ Resources:
 
   DashboardFunction:
     Properties:
-      CodeUri: ./handlers/dashboard/main.zip
+      CodeUri: ./handlers/dashboard
       Environment:
         Variables:
           CLIENT_ID: "id"
@@ -221,7 +221,7 @@ Resources:
 
   UserCreateFunction:
     Properties:
-      CodeUri: ./handlers/user-create/main.zip
+      CodeUri: ./handlers/user-create
       Environment:
         Variables:
           AUTH_HASH_KEY: !Ref AuthHashKey
@@ -251,7 +251,7 @@ Resources:
 
   UserDeleteFunction:
     Properties:
-      CodeUri: ./handlers/user-delete/main.zip
+      CodeUri: ./handlers/user-delete
       Environment:
         Variables:
           AUTH_HASH_KEY: !Ref AuthHashKey
@@ -275,7 +275,7 @@ Resources:
 
   UserReadFunction:
     Properties:
-      CodeUri: ./handlers/user-read/main.zip
+      CodeUri: ./handlers/user-read
       Environment:
         Variables:
           AUTH_HASH_KEY: !Ref AuthHashKey
@@ -301,7 +301,7 @@ Resources:
 
   UserUpdateFunction:
     Properties:
-      CodeUri: ./handlers/user-update/main.zip
+      CodeUri: ./handlers/user-update
       Environment:
         Variables:
           AUTH_HASH_KEY: !Ref AuthHashKey
@@ -495,7 +495,7 @@ Resources:
 
   WorkCreateFunction:
     Properties:
-      CodeUri: ./handlers/work-create/main.zip
+      CodeUri: ./handlers/work-create
       Environment:
         Variables:
           AUTH_HASH_KEY: !Ref AuthHashKey
@@ -522,7 +522,7 @@ Resources:
 
   WorkerFunction:
     Properties:
-      CodeUri: ./handlers/worker/main.zip
+      CodeUri: ./handlers/worker
       Environment:
         Variables:
           BUCKET: !Ref Bucket
@@ -538,7 +538,7 @@ Resources:
 
   WorkerPeriodicFunction:
     Properties:
-      CodeUri: ./handlers/worker-periodic/main.zip
+      CodeUri: ./handlers/worker-periodic
       Environment:
         Variables:
           BUCKET: !Ref Bucket

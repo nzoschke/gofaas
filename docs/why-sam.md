@@ -1,9 +1,9 @@
 # Why Serverless Application Model (SAM)
 ### For Go Functions-as-a-Service
 
-We have seen how Functions-as-a-Service invites new techniques to [develop, package and deploy](docs/dev-package-deploy) our apps versus monolithic apps. This poses a quest: what tools or frameworks make FaaS development, configuration and deployment easy so we can focus on our code?
+We see how Functions-as-a-Service invites new techniques to [develop, package and deploy](docs/dev-package-deploy) our apps versus monolithic apps. This poses a question: what tools or frameworks make FaaS configuration, development and deployment easy so we can focus on our code?
 
-AWS offers a first-party option -- the [Serverless Application Model](https://docs.aws.amazon.com/lambda/latest/dg/serverless_app.html):
+AWS offers a first-party option, the Serverless Application Model (SAM). [The docs](https://docs.aws.amazon.com/lambda/latest/dg/serverless_app.html) explain:
 
 > The AWS Serverless Application Model (AWS SAM) is a model to define serverless applications. AWS SAM is natively supported by AWS CloudFormation and defines simplified syntax for expressing serverless resources. The specification currently covers APIs, Lambda functions and Amazon DynamoDB tables. SAM is available under Apache 2.0 for AWS partners and customers to adopt and extend within their own toolsets.
 
@@ -13,44 +13,49 @@ This is one of many approaches for building FaaS apps. There are other open-sour
 - [Serverless Framework](https://serverless.com/)
 - [Terraform](https://www.terraform.io/docs/providers/aws/r/lambda_function.html)
 
-AWS offers other strategies such as:
+And other AWS tools and strategies such as:
 
 - [Blueprints](https://docs.aws.amazon.com/lambda/latest/dg/get-started-create-function.html)
 - [Chalice](https://github.com/aws/chalice)
 - [Cloud9 IDE](https://docs.aws.amazon.com/cloud9/latest/user-guide/lambda-functions.html)
-- [AWS CloudFormation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html)
+- [CloudFormation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html)
 
-So why SAM over other options? 
+So why SAM over other options?
 
 ## SAM - CloudFormation Simplified
 
-There are clear best practices for building systems on AWS. One is **Infrastructure-as-Code**.
+There are clear best practices for building systems on AWS. One is **Infrastructure-as-Code**. This is a strategy where we declare all the desired infrastructure in a configuration file and pass this config to a system that can:
 
-While it's very easy to create one Lambda function manually by clicking and coding in the AWS UI, it can be very hard to maintain this over time. Instead we prefer to use a codebase tracked in revision control and describe AWS infrastructure with configuration files, such as AWS CloudFormation templates or Terraform config files. This lets us evolve the AWS config over time with development best practices like code reviews, and ops best practices like infrastructure change plan reviews and rollbacks.
+* Create infrastructure from scratch
+* Show the steps to migrate existing infrastructure to a new config
+* Execute changes to migrate to a new config
+* Destroy all the infrastructure
 
-As long as you are targeting AWS only, it's hard to beat the utility of the CloudFormation service for infrastructure-as-code.
+While it is much easier to create our first Lambda functions by clicking around in the AWS UI, infrastructure-as-code offers development best practices like code reviews for infrastructure changes, and operational best practices like change plan reviews and rollback strategies.
 
-First, CloudFormation offers a way define virtually any AWS architecture with a JSON or YAML template, including parameters for things we may customize like a domain name, amount of CPU, memory or storage for a resource.
+The primary choices for infrastructure-as-code are CloudFormation and Terraform. As long as we are targeting AWS only, it's hard to beat the utility of the CloudFormation service. 
 
-Next, CloudFormation is a managed AWS service -- a set of APIs that automate everything about our infrastructure. Effectively we present a template to the CloudFormation API and AWS will safely create all the resources. Then we present a new version of our template to the API and AWS will tell us what it plans to change, then safely executes the change with zero downtime. Finally the APIs offer a strategy to roll back changes or completely destroy all the resources. With CloudFormation we don't have to worry about managing the state of a stack or talking to individual AWS service APIs to create or update resources.
+First, CloudFormation offers a way define virtually any AWS architecture with a JSON or YAML template. It supports 100s of AWS resource types, from API Gateways to RDS databases, and lets us customize these resources through parameters for domain names, amount of CPU, memory or storage, etc.
 
-There's one big catch with CloudFormation: writing templates can be challenging for medium to large stacks.
+Next, CloudFormation is a managed AWS service -- a set of APIs -- that automate everything around our infrastructure. Effectively we POST a config file template to the CloudFormation API and AWS will safely create all the resources in a matter of minutes, with APIs to describe progress along the way. Then we present a new version of our template to the API and AWS will tell us what it plans to change, then safely execute the change with zero downtime. Finally the APIs offer a strategy to roll back changes or completely destroy all the resources. With CloudFormation we don't have to worry about managing the state of existing infrastructure or talking to individual AWS service APIs to create or update resources.
+
+There's one big catch with CloudFormation: writing templates can be hard in general and particularly difficult for medium to large sets of infrastructure.
 
 SAM fixes this.
 
 SAM is a dialect of CloudFormation that focuses on key FaaS services like API Gateway, Lambda functions and DynamoDB tables. It offers us a vastly simplified YAML specification for defining functions, events and permissions. Behind the scenes it transforms this configuration file into a CloudFormation configuration file.
 
-SAM is the infrastructure-as-code pattern vastly simplified for FaaS apps. It is still CloudFormation so we don't need to depend on any 3rd party tools or frameworks to manage our functions.
+SAM is the infrastructure-as-code pattern vastly simplified for FaaS apps. It is still CloudFormation so we don't need to depend on any 3rd party tools or frameworks to manage our functions and we can still extend our template to do manage virtually anything else on AWS. But it offers a simpler syntax that helps us write vastly simpler and more compact config for our app.
 
 ## SAM - AWS Constrained
 
 Another best practice for building systems on AWS is **minimal infrastructure**.
 
-AWS is an infinitely capable platform, so there are countless ways to build a particular system. We could build our gofaas system with the classic ELB, EC2, EBS services and our own install of nginx, Redis, and Postgres for handling HTTP requests, queuing, storage and persistance. However here we are signing up for a lot of work on managing servers, storage and software.
+AWS is an infinitely capable platform, so there are countless ways to build a particular system. We could build our FaaS system with the classic ELB, EC2, EBS services and our own userdata scripts that install nginx, Redis, and Postgres for handling HTTP requests, queuing, storage and persistance respectively. However here we are signing up for a lot of work on managing servers, storage and software.
 
-But as AWS and the IaaS ecosystem evolves, we AWS and us users are steering towards managed cloud services.
+But as AWS and the IaaS ecosystem evolves, we are all are steering towards less raw infrastructure (e.g. EC2 + EBS) and more high level managed cloud services (e.g. RDS).
 
-We are now reaching towards API Gateway, Lambda, SQS, DynamoDB and S3 for HTTP, compute, queuing, data and storage respective. These services are building blocks for our app and infrastructure we are no longer responsible for.
+So we now reach towards API Gateway, Lambda, SQS, DynamoDB and S3 for HTTP, compute, queuing, data and storage respective. These services are building blocks for our app and infrastructure we are no longer responsible for.
 
 SAM focuses on [three primary resources](https://github.com/awslabs/serverless-application-model/blob/develop/versions/2016-10-31.md#resource-types) -- APIs, functions and tables -- that form the skeleton of our app. It then offers [10 types of events](https://github.com/awslabs/serverless-application-model/blob/develop/versions/2016-10-31.md#event-source-types) -- e.g. S3, SNS, DynamoDB, CloudWatch Schedule -- that represent the services that our functions interact with.
 

@@ -37,35 +37,59 @@ The primary choices for infrastructure-as-code are CloudFormation and Terraform.
 
 First, CloudFormation offers a way define virtually any AWS architecture with a JSON or YAML template. It supports 100s of AWS resource types, from API Gateways to RDS databases, and lets us customize these resources through parameters for domain names, amount of CPU, memory or storage, etc.
 
-Next, CloudFormation is a managed AWS service -- a set of APIs -- that automate everything around our infrastructure. Effectively we POST a config file template to the CloudFormation API and AWS will safely create all the resources in a matter of minutes, with APIs to describe progress along the way. Then we present a new version of our template to the API and AWS will tell us what it plans to change, then safely execute the change with zero downtime. Finally the APIs offer a strategy to roll back changes or completely destroy all the resources. With CloudFormation we don't have to worry about managing the state of existing infrastructure or talking to individual AWS service APIs to create or update resources.
+Next, CloudFormation is a managed AWS service -- a set of APIs -- that automate everything around our infrastructure. We POST a config file template to the CloudFormation API and AWS will automatically create all the resources in a matter of minutes, with more APIs to describe progress along the way. Then we present a new version of our template to the API and AWS will tell us what it plans to change, then safely execute the change with little to no downtime. Finally the APIs offer a strategy to roll back changes or completely destroy all the resources. With CloudFormation we don't have to worry about managing the state of existing infrastructure or talking to individual AWS service APIs to create or update resources.
 
-There's one big catch with CloudFormation: writing templates can be hard in general and particularly difficult for medium to large sets of infrastructure.
+There's one big catch with CloudFormation: writing templates can be hard in general, and particularly difficult for medium to large sets of infrastructure.
 
-SAM fixes this.
+SAM vastly simplifies the config file format.
 
-SAM is a dialect of CloudFormation that focuses on key FaaS services like API Gateway, Lambda functions and DynamoDB tables. It offers us a vastly simplified YAML specification for defining functions, events and permissions. Behind the scenes it transforms this configuration file into a CloudFormation configuration file.
+SAM is a dialect of CloudFormation that focuses on key FaaS services like API Gateway, Lambda functions and DynamoDB tables. It offers us a simplified YAML specification for defining functions, events and permissions. 
 
-SAM is the infrastructure-as-code pattern vastly simplified for FaaS apps. It is still CloudFormation so we don't need to depend on any 3rd party tools or frameworks to manage our functions and we can still extend our template to do manage virtually anything else on AWS. But it offers a simpler syntax that helps us write vastly simpler and more compact config for our app.
+```yaml
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+  DashboardFunction:
+    Properties:
+      CodeUri: ./handlers/dashboard
+      Events:
+        Request:
+          Properties:
+            Method: GET
+            Path: /
+          Type: Api
+      Handler: main
+      Runtime: go1.x
+    Type: AWS::Serverless::Function
+
+Transform: AWS::Serverless-2016-10-31
+```
+> A few lines of config creates a Lambda function, API Gateway and route
+
+Behind the scenes SAM transforms the FaaS resource config into standard CloudFormation resources. SAM also passes through standard CloudFormation resources untouched, so we retain support for the 100s of other AWS resource types.
+
+SAM is the infrastructure-as-code pattern made simple and more compact for FaaS apps, but doesn't restrict us from following the infrastructure-as-code best practice for all of our AWS resources.
 
 ## SAM - AWS Constrained
 
 Another best practice for building systems on AWS is **minimal infrastructure**.
 
-AWS is an infinitely capable platform, so there are countless ways to build a particular system. We could build our FaaS system with the classic ELB, EC2, EBS services and our own userdata scripts that install nginx, Redis, and Postgres for handling HTTP requests, queuing, storage and persistance respectively. However here we are signing up for a lot of work on managing servers, storage and software.
+AWS is an infinitely capable platform, so there are countless ways to build a system. We could build an app with a classic ELB, EC2, EBS services and our own userdata scripts that install nginx, Redis, and Postgres for handling HTTP requests, queuing, storage and persistance respectively. However here we are signing up for a lot of work configuring and managing servers, storage and software.
 
-But as AWS and the IaaS ecosystem evolves, we are all are steering towards less raw infrastructure (e.g. EC2 + EBS) and more high level managed cloud services (e.g. RDS).
+As AWS and the IaaS ecosystem evolves, we are all are steering away from raw infrastructure (e.g. EC2 + EBS) and towards high level managed cloud services (e.g. RDS).
 
-So we now reach towards API Gateway, Lambda, SQS, DynamoDB and S3 for HTTP, compute, queuing, data and storage respective. These services are building blocks for our app and infrastructure we are no longer responsible for.
+Hence the "serverless" approach of API Gateway, Lambda, SQS, DynamoDB and S3 for HTTP, compute, queuing, data and storage respectively. These services are building blocks for our app and infrastructure we are no longer responsible for.
 
-SAM focuses on [three primary resources](https://github.com/awslabs/serverless-application-model/blob/develop/versions/2016-10-31.md#resource-types) -- APIs, functions and tables -- that form the skeleton of our app. It then offers [10 types of events](https://github.com/awslabs/serverless-application-model/blob/develop/versions/2016-10-31.md#event-source-types) -- e.g. S3, SNS, DynamoDB, CloudWatch Schedule -- that represent the services that our functions interact with.
+SAM focuses on [three primary resources](https://github.com/awslabs/serverless-application-model/blob/develop/versions/2016-10-31.md#resource-types) -- APIs, functions and tables -- that form the skeleton of our app. It then offers [10 types of events](https://github.com/awslabs/serverless-application-model/blob/develop/versions/2016-10-31.md#event-source-types) -- e.g. API Gateway, S3, SNS, DynamoDB, CloudWatch scheduled events -- to connect our functions together.
 
 These components allow us to build very capable apps on extremely minimal infrastructure.
 
-The result is less time configuring and operating infrastructure, and more time writing our business code.
+With minimal infrastructure we spend less time configuring and operating infrastructure, and more time writing our business code.
 
 ## AWS Config - Hello World
 
-Let's look back at a SAM template for a simple [http function](docs/http-functions.md) with access to an S3 bucket:
+Let's look more closely at a SAM template for a simple [http function](docs/http-functions.md) with access to an S3 bucket:
 
 ```yaml
 ---
@@ -98,11 +122,11 @@ Transform: AWS::Serverless-2016-10-31
 ```
 > From [template.yml](template.yml)
 
-Here we've configured Lambda and API gateway in a few lines of YAML.
+Here we've configured Lambda, API gateway, S3 and per-function permissions in a few lines of YAML.
 
-With SAM we can launch this app locally with the `sam local start-api` command, and we can deploy it with the `sam package` and `sam deploy` command.
+With SAM we can launch this app locally with the `sam local start-api` command and develop our code. Then we can deploy it with the `sam package` and `sam deploy` commands.
 
-Behind the scenes SAM turns this into a CloudFormation template. It is demonstrative how complicated this is compared to the SAM template.
+Behind the scenes SAM turns this into a CloudFormation template. It is demonstrative how complicated this is compared to source the SAM template.
 
 ```json
 {
@@ -304,16 +328,19 @@ Behind the scenes SAM turns this into a CloudFormation template. It is demonstra
 }
 ```
 
+Thats a lot of config to describe our FaaS infrastructure, but SAM makes writing the config, and development, packaging and deployment simple.
+
 ## Summary
 
-Building an app with SAM guides us towards best practices for:
+Building an app with SAM guides us towards AWS best practices for:
 
 - Infrastructure-as-code
 - Minimal infrastructure
 
 We no longer have to worry about:
 
-- Complex CloudFormation templates
-- 3rd party middleware or frameworks
+- Configuring AWS manually
+- Writing complex CloudFormation templates
+- Using 3rd party middleware or frameworks
 
-Our SAM app is very easy to build and maintain.
+SAM makes it very easy to build and maintain a FaaS app.

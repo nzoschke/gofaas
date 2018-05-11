@@ -6,7 +6,7 @@ The [Twelve-Factor App](https://12factor.net/) documents best practices for buil
 * [Build, release, run](https://12factor.net/build-release-run) -- Strictly separate build and run stages
 * [Dev/prod parity](https://12factor.net/dev-prod-parity) -- Keep development, staging, and production as similar as possible
 
-We can easily implement these these factors for our Go FaaS app with help of the [AWS SAM Local](https://github.com/awslabs/aws-sam-local) development environment.
+We can easily implement these these factors for our Go FaaS app with help of the [AWS SAM CLI](https://github.com/awslabs/aws-sam-cli) development environment.
 
 ## Build with go cross-compiler
 
@@ -27,14 +27,14 @@ Compare this to the tools and services required to build Docker images, EC2 AMIs
 
 ## Develop with SAM Local
 
-But a new problem arises... How do run assemble these function packages into an API on our development box? Enter [AWS SAM Local](https://github.com/awslabs/aws-sam-local), a tool for local development and testing of serverless applications. It leverages Docker and the [lambci/lambda](https://hub.docker.com/r/lambci/lambda/) images to run the Linux binary in the `main.zip` packages.
+But a new problem arises... How do run assemble these function packages into an API on our development box? Enter [AWS SAM CLI](https://github.com/awslabs/aws-sam-cli), a tool for local development and testing of serverless applications. It leverages Docker and the [lambci/lambda](https://hub.docker.com/r/lambci/lambda/) images to run the Linux binary in the `main.zip` packages.
 
 ### invoke
 
-The simplest example is the `aws-sam-local local invoke` command:
+The simplest example is the `sam local invoke` command:
 
 ```console
-$ echo '{}' | aws-sam-local local invoke WorkerFunction
+$ echo '{}' | sam local invoke WorkerFunction
 2018/02/24 15:27:01 Successfully parsed template.yml
 2018/02/24 15:27:01 Connected to Docker 1.35
 2018/02/24 15:27:01 Fetching lambci/lambda:go1.x image for go1.x runtime...
@@ -52,10 +52,10 @@ This offers a fairly faithful representation of the Lambda production environmen
 
 ### start-api
 
-We can also run assemble our HTTP functions with `aws-sam-local local start-api`:
+We can also run assemble our HTTP functions with `sam local start-api`:
 
 ```console
-$ aws-sam-local local start-api
+$ sam local start-api
 2018/02/24 15:33:15 Connected to Docker 1.35
 2018/02/24 15:33:15 Fetching lambci/lambda:go1.x image for go1.x runtime...
 

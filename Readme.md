@@ -20,7 +20,7 @@ It demonstrates:
 | ---------------------------------------------- |-----------------------------------------|:-----------------------:|
 | [HTTP functions][1]                            | Lambda, API Gateway                     | [💾](dashboard.go)      |
 | [Worker functions (one-off and periodic)][2]   | Lambda, Invoke API, CloudWatch Events   | [💾](worker.go)         |
-| [Development, packaging and deployment][3]     | make, go, aws-sam-local, CloudFormation | [⚙️](Makefile)          |
+| [Development, packaging and deployment][3]     | make, go, aws-sam-cli, CloudFormation   | [⚙️](Makefile)          |
 | [Per-function environment and policies][4]     | Lambda, IAM                             | [⚙️](template.yml)      |
 | [Custom domains][5]                            | CloudFront, ACM                         | [⚙️](template.yml)      |
 | [Static web content][6]                        | S3, CloudFront, ACM                     | [⚙️](template.yml)      |
@@ -182,7 +182,7 @@ $ curl http://localhost:3000
 We can also invoke a function directly:
 
 ```
-$ echo '{}' | aws-sam-local local invoke WorkerFunction
+$ echo '{}' | sam local invoke WorkerFunction
 ...
 START RequestId: 36d6d40e-0d4b-168c-63d5-76b25f543d21 Version: $LATEST
 2018/02/25 16:05:21 Worker Event: {SourceIP: TimeEnd:0001-01-01 00:00:00 +0000 UTC TimeStart:0001-01-01 00:00:00 +0000 UTC}

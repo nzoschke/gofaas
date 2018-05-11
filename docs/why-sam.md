@@ -126,7 +126,10 @@ Here we've configured Lambda, API gateway, S3 and per-function permissions in a 
 
 With SAM we can launch this app locally with the `sam local start-api` command and develop our code. Then we can deploy it with the `sam package` and `sam deploy` commands.
 
-Behind the scenes SAM turns this into a CloudFormation template. It is demonstrative how complicated this is compared to source the SAM template.
+Behind the scenes SAM turns this into a CloudFormation template.
+
+<details>
+<summary>It is demonstrative how complicated this is compared to source the SAM template...</summary>
 
 ```json
 {
@@ -327,6 +330,7 @@ Behind the scenes SAM turns this into a CloudFormation template. It is demonstra
     }
 }
 ```
+</details>
 
 Thats a lot of config to describe our FaaS infrastructure, but SAM makes writing the config, and development, packaging and deployment simple.
 

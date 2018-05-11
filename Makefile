@@ -5,7 +5,7 @@ app: dev
 
 clean:
 	rm -f $(wildcard handlers/*/main)
-	rm -f $(wildcard web/handlers/*/index.zip)
+	rm -rf $(wildcard web/handlers/*/node_modules)
 
 deploy: BUCKET = pkgs-$(shell aws sts get-caller-identity --output text --query 'Account')-$(AWS_DEFAULT_REGION)
 deploy: PARAMS ?= =
@@ -35,9 +35,9 @@ HANDLERS=$(addsuffix main,$(wildcard handlers/*/))
 $(HANDLERS): handlers/%/main: *.go handlers/%/main.go vendor
 	cd ./$(dir $@) && GOOS=linux go build -o main .
 
-HANDLERS_JS=$(addsuffix index.zip,$(wildcard web/handlers/*/))
-$(HANDLERS_JS): web/handlers/%/index.zip: web/handlers/%/index.js web/handlers/%/package.json
-	cd ./$(dir $@) && npm install && node-prune >/dev/null && zip -9qr index.zip *
+HANDLERS_JS=$(addsuffix node_modules,$(wildcard web/handlers/*/))
+$(HANDLERS_JS): web/handlers/%/node_modules: web/handlers/%/package.json
+	cd ./$(dir $@) && npm install && node-prune >/dev/null && touch node_modules
 
 handlers: handlers-go handlers-js
 handlers-go: $(HANDLERS)

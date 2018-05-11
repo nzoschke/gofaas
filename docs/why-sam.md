@@ -3,7 +3,7 @@
 
 We see how Functions-as-a-Service invites new techniques to [develop, package and deploy](docs/dev-package-deploy) our apps versus monolithic apps. This poses a question: what tools or frameworks make FaaS configuration, development and deployment easy so we can focus on our code?
 
-AWS offers a first-party option, the Serverless Application Model (SAM). [The docs](https://docs.aws.amazon.com/lambda/latest/dg/serverless_app.html) explain:
+AWS offers a first-party and [open-source](https://aws.amazon.com/about-aws/whats-new/2018/04/aws-sam-implementation-is-now-open-source/) option, the Serverless Application Model (SAM). [The docs](https://docs.aws.amazon.com/lambda/latest/dg/serverless_app.html) explain:
 
 > The AWS Serverless Application Model (AWS SAM) is a model to define serverless applications. AWS SAM is natively supported by AWS CloudFormation and defines simplified syntax for expressing serverless resources. The specification currently covers APIs, Lambda functions and Amazon DynamoDB tables. SAM is available under Apache 2.0 for AWS partners and customers to adopt and extend within their own toolsets.
 

@@ -138,7 +138,7 @@ Resources:
           SslSupportMethod: sni-only
     Type: AWS::CloudFront::Distribution
 ```
-> From [template.yml](template.yml)
+> From [template.yml](../template.yml)
 
 ## Deploy
 
@@ -156,7 +156,7 @@ $ aws cloudformation describe-stacks --stack-name gofaas \
     --output text --query 'Stacks[*].Outputs'
 WebUrl	http://gofaas-webbucket-572007530218.s3-website-us-east-1.amazonaws.com
 ```
-> From [Makefile](Makefile)
+> From [Makefile](../Makefile)
 
 And upload our first content:
 
@@ -165,7 +165,7 @@ $ aws s3 sync public s3://gofaas-webbucket-572007530218/
 upload: public/index.html to s3://gofaas-webbucket-572007530218/index.html
 ...
 ```
-> From [Makefile](Makefile)
+> From [Makefile](../Makefile)
 
 Sure enough we can access it over HTTP:
 

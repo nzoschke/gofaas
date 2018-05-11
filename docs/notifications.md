@@ -37,7 +37,7 @@ func notify(ctx context.Context, err error) {
 	})
 }
 ```
-> From [notify.go](notify.go)
+> From [notify.go](../notify.go)
 
 Then we update our handler programs to use the middleware:
 
@@ -46,7 +46,7 @@ func main() {
 	lambda.Start(gofaas.NotifyAPIGateway(gofaas.Dashboard))
 }
 ```
-> From [handlers/dashboard/main.go]
+> From [handlers/dashboard/main.go](../handlers/dashboard/main.go)
 
 There are a couple Go-isms to note here.
 
@@ -105,7 +105,7 @@ Resources:
       TopicName: Notification
     Type: AWS::SNS::Topic
 ```
-> From [template.yml](template.yml)
+> From [template.yml](../template.yml)
 
 ## Summary
 

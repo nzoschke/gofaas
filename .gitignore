@@ -1,8 +1,6 @@
 .DS_Store
 .vscode
-index.zip
 main
-main.zip
 out.yml
 node_modules
 web/static/js/env.js

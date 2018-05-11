@@ -6,7 +6,7 @@ The [Twelve-Factor App](https://12factor.net/) documents best practices for buil
 * [Build, release, run](https://12factor.net/build-release-run) -- Strictly separate build and run stages
 * [Dev/prod parity](https://12factor.net/dev-prod-parity) -- Keep development, staging, and production as similar as possible
 
-We can easily implement these these factors for our Go FaaS app with help of the [AWS SAM Local](https://github.com/awslabs/aws-sam-local) development environment.
+We can easily implement these these factors for our Go FaaS app with help of the [AWS SAM CLI](https://github.com/awslabs/aws-sam-cli) development environment.
 
 ## Build with go cross-compiler
 
@@ -27,21 +27,19 @@ Compare this to the tools and services required to build Docker images, EC2 AMIs
 
 ## Develop with SAM Local
 
-But a new problem arises... How do run assemble these function packages into an API on our development box? Enter [AWS SAM Local](https://github.com/awslabs/aws-sam-local), a tool for local development and testing of serverless applications. It leverages Docker and the [lambci/lambda](https://hub.docker.com/r/lambci/lambda/) images to run the Linux binary in the `main.zip` packages.
+But a new problem arises... How do run assemble these function packages into an API on our development box? Enter [AWS SAM CLI](https://github.com/awslabs/aws-sam-cli), a tool for local development and testing of serverless applications. It leverages Docker and the [lambci/lambda](https://hub.docker.com/r/lambci/lambda/) images to run the Go Linux binary.
 
 ### invoke
 
-The simplest example is the `aws-sam-local local invoke` command:
+The simplest example is the `sam local invoke` command:
 
 ```console
-$ echo '{}' | aws-sam-local local invoke WorkerFunction
-2018/02/24 15:27:01 Successfully parsed template.yml
-2018/02/24 15:27:01 Connected to Docker 1.35
-2018/02/24 15:27:01 Fetching lambci/lambda:go1.x image for go1.x runtime...
-2018/02/24 15:27:03 Reading invoke payload from stdin
-2018/02/24 15:27:03 Invoking handler (go1.x)
-2018/02/24 15:27:03 Decompressing main.zip
-2018/02/24 15:27:03 Mounting /var/task:ro inside runtime container
+$ echo '{}' | sam local invoke WorkerFunction
+2018-05-11 08:18:21 Reading invoke payload from stdin (you can also pass it from file with --event)
+2018-05-11 08:18:21 Invoking main (go1.x)
+2018-05-11 08:18:21 Starting new HTTP connection (1): 169.254.169.254
+Fetching lambci/lambda:go1.x Docker container image......
+2018-05-11 08:18:24 Mounting handlers/worker as /var/task:ro inside runtime container
 START RequestId: 358be5fc-928c-1a9a-b655-c84bb2958a5e Version: $LATEST
 2018/02/24 23:27:04 Worker Event: {SourceIP: TimeEnd:0001-01-01 00:00:00 +0000 UTC TimeStart:0001-01-01 00:00:00 +0000 UTC}
 END RequestId: 358be5fc-928c-1a9a-b655-c84bb2958a5e
@@ -52,12 +50,10 @@ This offers a fairly faithful representation of the Lambda production environmen
 
 ### start-api
 
-We can also run assemble our HTTP functions with `aws-sam-local local start-api`:
+We can also run assemble our HTTP functions with `sam local start-api`:
 
 ```console
-$ aws-sam-local local start-api
-2018/02/24 15:33:15 Connected to Docker 1.35
-2018/02/24 15:33:15 Fetching lambci/lambda:go1.x image for go1.x runtime...
+$ sam local start-api
 
 Mounting handler (go1.x) at http://127.0.0.1:3000/users [POST]
 Mounting handler (go1.x) at http://127.0.0.1:3000/users/{id} [PUT]
@@ -67,8 +63,7 @@ Mounting handler (go1.x) at http://127.0.0.1:3000/users/{id} [GET]
 
 ## run `curl http://localhost:3000`
 
-2018/02/24 15:41:57 Invoking handler (go1.x)
-2018/02/24 15:41:57 Decompressing handlers/dashboard/main.zip
+2018/02/24 15:41:57 Mounting handlers/dashboard as /var/task:ro inside runtime container
 START RequestId: b913c432-3ed8-1e30-5c6d-e4582e59cb02 Version: $LATEST
 END RequestId: b913c432-3ed8-1e30-5c6d-e4582e59cb02
 REPORT RequestId: b913c432-3ed8-1e30-5c6d-e4582e59cb02  Duration: 2.12 ms  Billed Duration: 100 ms  Memory Size: 128 MB  Max Memory Used: 8 MB
@@ -84,14 +79,14 @@ Compare this to the difference between developing an Rails app with `rails serve
 
 The final trick is to rebuild handler packages on every code change.
 
-Thanks to the fact that the local API server unzips a handler package on every request, and Go effectively caches builds, we have a simple solution: rebuild all handlers in parallel on every change.
+Thanks to the fact that the local API server mounts the handler directory on every request, and Go effectively caches builds, we have a simple solution: rebuild all handlers in parallel on every change.
 
 We can use`make`, the ubiquitous tool for generating binaries from source files with [`watchexec`](https://github.com/mattgreen/watchexec), a program that watches for file changes and re-runs a command.
 
 ```console
 $ watchexec -f '*.go' 'make -j handlers'
 ```
-> From [Makefile](Makefile)
+> From [Makefile](../Makefile)
 
 Again we find a simple solution with great dev/prod parity.
 
@@ -99,13 +94,13 @@ Again we find a simple solution with great dev/prod parity.
 
 Our `template.yml` AWS config file is a CloudFormation template of the [SAM dialect](https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md). So we can lean on the `aws` CLI to release and run our app.
 
-The release step is accomplished with the `aws cloudformation package` command. This uploads our `main.zip` files to S3 and writes a new CloudFormation template with the S3 URLs. The run step is executed with the `aws cloudformation deploy` command. This uses the CloudFormation API to update our resources -- such as updating Lambda functions to the new release.
+The release step is accomplished with the `sam package` command. This zips the handler directory and uploads the package to S3 and writes a new CloudFormation template with the S3 URLs. The run step is executed with the `sam deploy` command. This uses the CloudFormation API to update our resources -- such as updating Lambda functions to the new release.
 
 ```console
 $ aws cloudformation package --output-template-file out.yml --s3-bucket $(BUCKET) --template-file template.yml
 $ aws cloudformation deploy --capabilities CAPABILITY_NAMED_IAM --template-file out.yml --stack-name gofaas
 ```
-> From [Makefile](Makefile)
+> From [Makefile](../Makefile)
 
 There's a lot of functionality baked into these commands like uploading package as efficiently as possible, creating new resources in dependency order, and safely rolling back updates on a failure. But it's all managed by CloudFormation.
 

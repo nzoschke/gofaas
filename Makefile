@@ -5,15 +5,14 @@ app: dev
 
 clean:
 	rm -f $(wildcard handlers/*/main)
-	rm -f $(wildcard handlers/*/main.zip)
-	rm -f $(wildcard web/handlers/*/index.zip)
+	rm -rf $(wildcard web/handlers/*/node_modules)
 
 deploy: BUCKET = pkgs-$(shell aws sts get-caller-identity --output text --query 'Account')-$(AWS_DEFAULT_REGION)
 deploy: PARAMS ?= =
 deploy: handlers
 	@aws s3api head-bucket --bucket $(BUCKET) || aws s3 mb s3://$(BUCKET) --region $(AWS_DEFAULT_REGION)
-	aws cloudformation package --output-template-file out.yml --s3-bucket $(BUCKET) --template-file template.yml
-	aws cloudformation deploy --capabilities CAPABILITY_NAMED_IAM --parameter-overrides $(PARAMS) --template-file out.yml --stack-name $(APP)
+	sam package --output-template-file out.yml --s3-bucket $(BUCKET) --template-file template.yml
+	sam deploy --capabilities CAPABILITY_NAMED_IAM --parameter-overrides $(PARAMS) --template-file out.yml --stack-name $(APP)
 	make deploy-static
 
 deploy-static: API_URL=$(shell aws cloudformation describe-stacks --output text --query 'Stacks[].Outputs[?OutputKey==`ApiUrl`].{Value:OutputValue}' --stack-name $(APP))
@@ -28,17 +27,17 @@ deploy-static: web/static/index.html
 dev:
 	make -j dev-watch dev-sam
 dev-sam:
-	aws-sam-local local start-api -n env.json -s web/static
+	sam local start-api -n env.json -s web/static
 dev-watch:
 	watchexec -f '*.go' 'make -j handlers'
 
-HANDLERS=$(addsuffix main.zip,$(wildcard handlers/*/))
-$(HANDLERS): handlers/%/main.zip: *.go handlers/%/main.go vendor
-	cd ./$(dir $@) && GOOS=linux go build -o main . && zip -1r -xmain.go main.zip *
+HANDLERS=$(addsuffix main,$(wildcard handlers/*/))
+$(HANDLERS): handlers/%/main: *.go handlers/%/main.go vendor
+	cd ./$(dir $@) && GOOS=linux go build -o main .
 
-HANDLERS_JS=$(addsuffix index.zip,$(wildcard web/handlers/*/))
-$(HANDLERS_JS): web/handlers/%/index.zip: web/handlers/%/index.js web/handlers/%/package.json
-	cd ./$(dir $@) && npm install && node-prune >/dev/null && zip -9qr index.zip *
+HANDLERS_JS=$(addsuffix node_modules,$(wildcard web/handlers/*/))
+$(HANDLERS_JS): web/handlers/%/node_modules: web/handlers/%/package.json
+	cd ./$(dir $@) && npm install && node-prune >/dev/null && touch node_modules
 
 handlers: handlers-go handlers-js
 handlers-go: $(HANDLERS)

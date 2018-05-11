@@ -1,4 +1,4 @@
-# Databases and Encryption-at-Rest
+# Databases and Encryption
 ### With Go, DynamoDB and KMS
 
 Every meaningful application has to deal with state. We introduced S3 to save reports, but what do we do for CRUD -- data we will create, read, update and delete with random access? SAM offers strong opinion about the solution -- an `Amazon::Serverless::SimpleTable` resource -- which is a DynamoDB table.
@@ -19,9 +19,11 @@ But of course it poses some challenges.
 
 DynamoDB not as easy to use as a developer. It lacks transactions so if we need to update multiple records atomically, our code has to handle locking, updating, then unlocking. It has a simplistic indexing model so we have to design our table keys and limited indexes carefully to avoid scanning the entire table. It's scaling model isn't perfect, so there are scenarios where DynamoDB will be inefficient and expensive at medium to large scale.
 
-All that said, for many use-cases DynamoDB is indeed a "Simple Table" and a good default choice to add to our app.
+Perhaps [AWS Aurora Serverless](https://aws.amazon.com/blogs/aws/in-the-works-amazon-aurora-serverless/) will offer the best of both worlds: a SQL database that handles many connections and scales transparently. However, at time of writing it is in preview, so not available for day-to-day use.
 
-With any data store, the strategy for storing sensitive data like API keys, credit cards, or personal information is uncontroversial. We opt to use the AWS Key Management Service (KMS) to encrypt data at rest.
+So for many use-cases DynamoDB is indeed a "simple table" and a good default choice to add to our app.
+
+With any data store, the strategy for storing sensitive data like API keys, credit cards, or personal information is uncontroversial. We opt to use the AWS Key Management Service (KMS) to encrypt data.
 
 ## AWS Config
 
@@ -80,11 +82,11 @@ Resources:
             KeyId: !Ref Key
     Type: AWS::Serverless::Function
 ```
-> From [template.yml](template.yml)
+> From [template.yml](../template.yml)
 
 Here we start with the lowest value for read and write capacity units to save money. But we can consider making these parameters on the stack or adding more resources to perform autoscaling ([docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html#cfn-dynamodb-table-examples-application-autoscaling))...
 
-Note how we give one function a policy to encrypt and another a policy to decrypt. This is the "the principal of least privilege". We might consider custom statements with `dynamodb:GetItem`, `dynamodb:DeleteItem`, and `dynamodb:PutItem` actions too, but we opt for the simpler template policy for now. See the [Per-Function Policies](docs/per-function-policies.md) doc for more details.
+Note how we give one function a policy to encrypt and another a policy to decrypt. This is the "the principal of least privilege". We might consider custom statements with `dynamodb:GetItem`, `dynamodb:DeleteItem`, and `dynamodb:PutItem` actions too, but we opt for the simpler template policy for now. See the [Per-Function Policies](per-function-policies.md) doc for more details.
 
 ## Go Code
 
@@ -170,22 +172,22 @@ func userPut(ctx context.Context, u *User) error {
 	return errors.WithStack(err)
 }
 ```
-> From [user.go](user.go)
+> From [user.go](../user.go)
 
-Encrypting data before saving it to the database is a security best practice called "encryption at rest". If someone was to gain access to the database or a dump of data, they would not be able to access our sensitive information without gaining additional access to KMS. KMS makes this easy with its Encrypt and Decrypt APIs.
+Encrypting data before saving it to the database is a security best practice. If someone was to gain access to the database or a dump of data, they would not be able to access our sensitive information without gaining additional access to KMS. KMS makes this easy with its Encrypt and Decrypt APIs.
 
 ## Summary
 
 When building an app with Go, DynamoDB and KMS we:
 
 - Store and access data with fast, random access
-- Save data encrypted at rest
+- Save data in an encrypted format
 - Replicate our data across multiple servers transparently
 - Scale our database up or down without downtime
 
 We don't have to:
 
 - Operate database servers or clusters
-- Design encryption schemes
+- Design custom encryption schemes
 
 DynamoDB and KMS make it easy to store data in a secure and reliable manner.

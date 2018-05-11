@@ -35,7 +35,7 @@ Resources:
       Tracing: Active
     Type: AWS::Serverless::Function
 ```
-> From [template.yml](template.yml)
+> From [template.yml](../template.yml)
 
 When this is enabled, AWS will automatically run a X-Ray daemon for our Lambda function.
 
@@ -91,7 +91,7 @@ func userPut(ctx context.Context, u *User) error {
 	return errors.WithStack(err)
 }
 ```
-> From [user.go](user.go)
+> From [user.go](../user.go)
 
 When working with the AWS SDK we make sure to use the `WithContext` methods. See the [Context Pattern added to the AWS SDK for Go](https://aws.amazon.com/blogs/developer/context-pattern-added-to-the-aws-sdk-for-go/) to learn about more ways the context pattern helps us build our app.
 
@@ -131,7 +131,7 @@ func KMS() *kms.KMS {
 	return c
 }
 ```
-> From [aws.go](aws.go)
+> From [aws.go](../aws.go)
 
 We can also use the X-Ray SDK to trace external HTTP calls, SQL calls, or create any custom segments and subsegments. Refer to the [X-Ray SDK for Go](https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-go.html) developer guide for more details.
 

@@ -32,9 +32,9 @@ dev-sam:
 dev-watch:
 	watchexec -f '*.go' 'make -j handlers'
 
-HANDLERS=$(addsuffix main.zip,$(wildcard handlers/*/))
-$(HANDLERS): handlers/%/main.zip: *.go handlers/%/main.go vendor
-	cd ./$(dir $@) && GOOS=linux go build -o main . && zip -1r -xmain.go main.zip *
+HANDLERS=$(addsuffix main,$(wildcard handlers/*/))
+$(HANDLERS): handlers/%/main: *.go handlers/%/main.go vendor
+	cd ./$(dir $@) && GOOS=linux go build -o main .
 
 HANDLERS_JS=$(addsuffix index.zip,$(wildcard web/handlers/*/))
 $(HANDLERS_JS): web/handlers/%/index.zip: web/handlers/%/index.js web/handlers/%/package.json

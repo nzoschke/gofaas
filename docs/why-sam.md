@@ -1,7 +1,7 @@
 # Why Serverless Application Model (SAM)
 ### For Go Functions-as-a-Service
 
-We see how Functions-as-a-Service invites new techniques to [develop, package and deploy](docs/dev-package-deploy) our apps versus monolithic apps. This poses a question: what tools or frameworks make FaaS configuration, development and deployment easy so we can focus on our code?
+We see how Functions-as-a-Service invites new techniques to [develop, package and deploy](dev-package-deploy.md) our apps versus monolithic apps. This poses a question: what tools or frameworks make FaaS configuration, development and deployment easy so we can focus on our code?
 
 AWS offers a first-party and [open-source](https://aws.amazon.com/about-aws/whats-new/2018/04/aws-sam-implementation-is-now-open-source/) option, the Serverless Application Model (SAM). [The docs](https://docs.aws.amazon.com/lambda/latest/dg/serverless_app.html) explain:
 
@@ -89,7 +89,7 @@ With minimal infrastructure we spend less time configuring and operating infrast
 
 ## AWS Config - Hello World
 
-Let's look more closely at a SAM template for a simple [http function](docs/http-functions.md) with access to an S3 bucket:
+Let's look more closely at a SAM template for a simple [http function](http-functions.md) with access to an S3 bucket:
 
 ```yaml
 ---
@@ -120,7 +120,7 @@ Resources:
 
 Transform: AWS::Serverless-2016-10-31
 ```
-> From [template.yml](template.yml)
+> From [template.yml](../template.yml)
 
 Here we've configured Lambda, API gateway, S3 and per-function permissions in a few lines of YAML.
 

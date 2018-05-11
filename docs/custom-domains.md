@@ -48,7 +48,7 @@ Resources:
       Stage: !Ref ServerlessRestApiProdStage
     Type: AWS::ApiGateway::BasePathMapping
 ```
-> From [template.yml](template.yml)
+> From [template.yml](../template.yml)
 
 ## Deploy command
 

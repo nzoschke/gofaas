@@ -82,11 +82,11 @@ Resources:
             KeyId: !Ref Key
     Type: AWS::Serverless::Function
 ```
-> From [template.yml](template.yml)
+> From [template.yml](../template.yml)
 
 Here we start with the lowest value for read and write capacity units to save money. But we can consider making these parameters on the stack or adding more resources to perform autoscaling ([docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html#cfn-dynamodb-table-examples-application-autoscaling))...
 
-Note how we give one function a policy to encrypt and another a policy to decrypt. This is the "the principal of least privilege". We might consider custom statements with `dynamodb:GetItem`, `dynamodb:DeleteItem`, and `dynamodb:PutItem` actions too, but we opt for the simpler template policy for now. See the [Per-Function Policies](docs/per-function-policies.md) doc for more details.
+Note how we give one function a policy to encrypt and another a policy to decrypt. This is the "the principal of least privilege". We might consider custom statements with `dynamodb:GetItem`, `dynamodb:DeleteItem`, and `dynamodb:PutItem` actions too, but we opt for the simpler template policy for now. See the [Per-Function Policies](per-function-policies.md) doc for more details.
 
 ## Go Code
 
@@ -172,7 +172,7 @@ func userPut(ctx context.Context, u *User) error {
 	return errors.WithStack(err)
 }
 ```
-> From [user.go](user.go)
+> From [user.go](../user.go)
 
 Encrypting data before saving it to the database is a security best practice. If someone was to gain access to the database or a dump of data, they would not be able to access our sensitive information without gaining additional access to KMS. KMS makes this easy with its Encrypt and Decrypt APIs.
 

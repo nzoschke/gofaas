@@ -49,7 +49,7 @@ Resources:
             KeyId: !Ref Key
     Type: AWS::Serverless::Function
 ```
-> From [template.yml](template.yml)
+> From [template.yml](../template.yml)
 
 The worker functions also have fine-grained policies. One has permission to create objects via the `S3CrudPolicy` and one has permission to only list and delete objects via a custom statement. Both have a `BUCKET` environment variable so the functions know what resource to use.
 
@@ -82,7 +82,7 @@ Resources:
               Resource: !Sub "arn:aws:s3:::${Bucket}/*"
     Type: AWS::Serverless::Function
 ```
-> From [template.yml](template.yml)
+> From [template.yml](../template.yml)
 
 The security implications are massive.
 

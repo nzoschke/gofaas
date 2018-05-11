@@ -49,7 +49,7 @@ func userPut(ctx context.Context, u *User) error {
 	return errors.WithStack(err)
 }
 ```
-> From [user.go](user.go)
+> From [user.go](../user.go)
 
 
 By default we initialize the `DynamoDB` variable as the SDK dynamodb client, with standard configuration for the AWS region and credentials. The only trick is that the variable type is the `DynamoDBAPI` interface which the SDK client satisfies.
@@ -71,7 +71,7 @@ func NewDynamoDB() DynamoDBAPI {
 	return c
 }
 ```
-> From [aws.go](aws.go)
+> From [aws.go](../aws.go)
 
 ## Go Code -- Interface and Mock Client
 
@@ -97,7 +97,7 @@ func (m *MockDynamoDB) PutItemWithContext(ctx aws.Context, input *dynamodb.PutIt
 	return m.PutItemOutput, nil
 }
 ```
-> From [aws_test.go](aws_test.go)
+> From [aws_test.go](../aws_test.go)
 
 Sometimes it is useful for the test implementation to process the input argument into the output variable. Here we make a mock KMS client that "encrypts" the input via Base64, a deterministic process that is easy to test.
 
@@ -118,7 +118,7 @@ func (m *MockKMS) EncryptWithContext(ctx aws.Context, input *kms.EncryptInput, o
 	}, nil
 }
 ```
-> From [aws_test.go](aws_test.go)
+> From [aws_test.go](../aws_test.go)
 
 Now in our test programs we can replace `DynamoDB`, `KMS`, etc. with our mock implementations. Our `UserCreate` function calls `DynamoDB.PutItemWithContext` and our mock client controls the output.
 
@@ -151,7 +151,7 @@ func TestUserCreate(t *testing.T) {
 	)
 }
 ```
-> From [user_test.go](user_test.go)
+> From [user_test.go](../user_test.go)
 
 ## Summary
 

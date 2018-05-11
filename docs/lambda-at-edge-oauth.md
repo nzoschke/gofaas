@@ -53,13 +53,13 @@ exports.handler = (event, context, callback) => {
     }
 };
 ```
-> From [web/handlers/auth/index.js](web/handlers/auth/index.js)
+> From [web/handlers/auth/index.js](../web/handlers/auth/index.js)
 
 We expect Lambda@edge to invoke the `exports.handler` function with an `event` that describes the HTTP request and a `callback` that we call with an event that describes our HTTP response. 
 
 The request event includes HTTP headers, which enables us to check for a cookie. If the cookie invalid we will call `callback` with redirect response event:
 
-```json
+```js
 {
     status: "302",
     statusDescription: "Found",
@@ -275,7 +275,7 @@ var decode = (request) => {
 };
 ```
 
-In addition to authorizing access to the static content, a user can send the JWT in an `Authorization` HTTP header to an API. If we share the hash key between the web Lambda@Edge function and API Lambda functions, we now have a strategy for securing API access from a web app. See the [Function security with JSON Web Tokens](docs/auth-jwt.md) guide for more information.
+In addition to authorizing access to the static content, a user can send the JWT in an `Authorization` HTTP header to an API. If we share the hash key between the web Lambda@Edge function and API Lambda functions, we now have a strategy for securing API access from a web app. See the [Function security with JSON Web Tokens](security-cors-jwt.md) guide for more information.
 
 For more information about JWT, see the [Introduction to JSON Web Tokens](https://jwt.io/introduction/) guide.
 

@@ -20,7 +20,7 @@ func Dashboard(ctx context.Context, e events.APIGatewayProxyRequest) (events.API
 	}, nil
 }
 ```
-> From [dashboard.go](dashboard.go)
+> From [dashboard.go](../dashboard.go)
 
 The `APIGatewayProxyRequest` struct contains a user's HTTP request body, headers and metadata. The `APIGatewayProxyResponse` struct contains our HTTP response body, headers and status code.
 
@@ -47,7 +47,7 @@ Resources:
       Runtime: go1.x
     Type: AWS::Serverless::Function
 ```
-> From [template.yml](template.yml)
+> From [template.yml](../template.yml)
 
 ## Package and Deploy
 
@@ -77,7 +77,7 @@ $ cd handlers/dashboard &&          \
     GOOS=linux go build -o main  \
     zip main main.zip
 ```
-> From [Makefile](Makefile)
+> From [Makefile](../Makefile)
 
 Note how the Go cross-compiler makes it easy to build a Lambda package. This eliminates all cross-platform and dependency management challenges, and gives us a ~3 MB zip file we are confident we can deploy and execute quickly.
 
@@ -87,7 +87,7 @@ Now we can deploy it:
 $ aws cloudformation package --output-template-file out.yml --s3-bucket $(BUCKET) --template-file template.yml
 $ aws cloudformation deploy --capabilities CAPABILITY_NAMED_IAM --template-file out.yml --stack-name gofaas
 ```
-> From [Makefile](Makefile)
+> From [Makefile](../Makefile)
 
 The `package` command uploads the zip file to S3 and writes a new template with the S3 URL. The `deploy` command creates or updates our Lambda function with the new package. In less than a minute we have a Go HTTP function online.
 

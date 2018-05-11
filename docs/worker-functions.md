@@ -35,7 +35,7 @@ func Worker(ctx context.Context, e WorkerEvent) error {
 	return errors.WithStack(err)
 }
 ```
-> From [worker.go](worker.go)
+> From [worker.go](../worker.go)
 
 This function simply returns an error to tell Lambda if it was successful or not.
 
@@ -62,7 +62,7 @@ Resources:
       Timeout: 15
     Type: AWS::Serverless::Function
 ```
-> From [template.yml](template.yml)
+> From [template.yml](../template.yml)
 
 Note the longer timeout (15s versus default 3s) we give the worker in case it needs it. Also note the environment variable and policy for the bucket. When we deploy this, AWS will set up the bucket and permissions before creating the Lambda function.
 
@@ -82,7 +82,7 @@ func WorkerPeriodic(ctx context.Context, e events.CloudWatchEvent) error {
 	return errors.WithStack(err)
 }
 ```
-> From [worker.go](worker.go)
+> From [worker.go](../worker.go)
 
 ## AWS Config
 
@@ -116,7 +116,7 @@ Resources:
       Timeout: 15
     Type: AWS::Serverless::Function
 ```
-> From [template.yml](template.yml)
+> From [template.yml](../template.yml)
 
 Note the `rate(1 day)` ScheduleExpression. We could make this more frequent with `rate(1 minute)` or more specific with `cron(0 12 * * ? *)` (every day at 12). When we deploy this AWS will automatically invoke our function on this schedule. See the [CloudWatch Schedule Expressions guide](https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html) for more details.
 

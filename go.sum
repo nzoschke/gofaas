@@ -4,6 +4,8 @@ github.com/aws/aws-sdk-go v1.15.49 h1:KpQb+K3rqHcAZ44NT5c3pfHiyM8mqGEHuhobn0ZMyY
 github.com/aws/aws-sdk-go v1.15.49/go.mod h1:mFuSZ37Z9YOHbQEwBWztmVzqXrEkub65tZoCYDt7FT0=
 github.com/aws/aws-xray-sdk-go v0.9.4 h1:3mtFCrgFR5IefmWFV5pscHp9TTyOWuqaIKJIY0d1Y4g=
 github.com/aws/aws-xray-sdk-go v0.9.4/go.mod h1:XtMKdBQfpVut+tJEwI7+dJFRxxRdxHDyVNp2tHXRq04=
+github.com/aws/aws-xray-sdk-go v1.0.0-rc.8 h1:iGlkyj6X/tr5p511JmvHzY/Z4Le/EwZi6dW54sukIVo=
+github.com/aws/aws-xray-sdk-go v1.0.0-rc.8/go.mod h1:XtMKdBQfpVut+tJEwI7+dJFRxxRdxHDyVNp2tHXRq04=
 github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575 h1:kHaBemcxl8o/pQ5VM1c8PVE1PubbNx3mjUr09OqWGCs=
 github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575/go.mod h1:9d6lWj8KzO/fd/NrVaLscBKmPigpZpn5YawRPw+e3Yo=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=

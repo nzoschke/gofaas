@@ -21,6 +21,12 @@ Globals:
         - WebDomainNameSpecified
         - !Sub "'https://${WebDomainName}'"
         - Fn::Sub: ["'http://${WebBucket}.${Endpoint}'", {Endpoint: !FindInMap [RegionMap, !Ref "AWS::Region", S3WebsiteEndpoint]}]
+    MethodSettings:
+      - DataTraceEnabled: true
+        HttpMethod: "*"
+        LoggingLevel: INFO
+        MetricsEnabled: true
+        ResourcePath: /*
 
   Function:
     Environment:

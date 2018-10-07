@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-mkdir -p src/$PKG && cd src/$PKG
+mkdir -p $REPO && cd $REPO
 run -s "Cloning"  git clone $URL --branch $REF --single-branch .
 git reset --hard $SHA
 

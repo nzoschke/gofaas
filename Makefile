@@ -32,7 +32,7 @@ dev-watch:
 	watchexec -f '*.go' 'make -j handlers'
 
 HANDLERS=$(addsuffix main,$(wildcard handlers/*/))
-$(HANDLERS): handlers/%/main: *.go handlers/%/main.go vendor
+$(HANDLERS): handlers/%/main: *.go handlers/%/main.go
 	cd ./$(dir $@) && GOOS=linux go build -o main .
 
 HANDLERS_JS=$(addsuffix node_modules,$(wildcard web/handlers/*/))

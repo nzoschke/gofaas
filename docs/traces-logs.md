@@ -167,25 +167,20 @@ func MyHandler(ctx context.Context, e Event) error {
 
 It should be no surprise that Lambda supports this out of the box too. Logs printed to stdout and stderr are automatically captured and sent to CloudWatch Logs for future review.
 
-## cw log tail command
+## sam log command
 
-We can use a [CLI utility like `cw`](https://github.com/lucagrulla/cw) to review logs:
+We can use the `sam logs` command to review logs:
 
 ```shell
-$ go get github.com/lucagrulla/cw
-
-$ cw ls groups
-/aws/lambda/gofaas-DashboardFunction
-...
-
-$ cw tail -f /aws/lambda/gofaas-DashboardFunction
-START RequestId: 72dceba9-1a65-11e8-b628-8b3fbdd14d50 Version: $LATEST
-END RequestId: 72dceba9-1a65-11e8-b628-8b3fbdd14d50
-REPORT RequestId: 72dceba9-1a65-11e8-b628-8b3fbdd14d50  Duration: 16.44 ms  Billed Duration: 100 ms  Memory Size: 128 MB  Max Memory Used: 42 MB
+$ sam logs -n WorkerFunction --stack-name gofaas -t
+2018/10/07/[$LATEST]68e50ab313c34257844b10666a0c8d62 2018-10-07T18:42:33.005000 START RequestId: c0385b8a-ca60-11e8-879c-8f9b7d940021 Version: $LATEST
+2018/10/07/[$LATEST]68e50ab313c34257844b10666a0c8d62 2018-10-07T18:42:33.018000 2018/10/07 18:42:33 Worker Event: {SourceIP: TimeEnd:0001-01-01 00:00:00 +0000 UTC TimeStart:0001-01-01 00:00:00 +0000 UTC}
+2018/10/07/[$LATEST]68e50ab313c34257844b10666a0c8d62 2018-10-07T18:42:34.698000 END RequestId: c0385b8a-ca60-11e8-879c-8f9b7d940021
+2018/10/07/[$LATEST]68e50ab313c34257844b10666a0c8d62 2018-10-07T18:42:34.698000 REPORT RequestId: c0385b8a-ca60-11e8-879c-8f9b7d940021	Duration: 1672.96 ms	Billed Duration: 1700 ms 	Memory Size: 128 MB	Max Memory Used: 41 MB
 ...
 ```
 
-The `cw` tool, and CloudWatch Logs dashboard and API offer additional ways to access logs by time, and to filter logs by a pattern. See the [CloudWatch Logs User Guide](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html) for more details.
+The `sam logs` tool, and CloudWatch Logs dashboard and API offer additional ways to access logs by time, and to filter logs by a pattern. See `sam logs --help` and the [CloudWatch Logs User Guide](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html) for more details.
 
 ## Summary
 

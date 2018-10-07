@@ -144,6 +144,11 @@ Parameters:
     Type: String
 
 Resources:
+  ApiGatewayAccount:
+    Properties:
+      CloudWatchRoleArn: !GetAtt ApiGatewayRole.Arn
+    Type: AWS::ApiGateway::Account
+
   ApiGatewayCertificate:
     Condition: ApiDomainNameSpecified
     Properties:
@@ -164,6 +169,23 @@ Resources:
       RestApiId: !Ref ServerlessRestApi
       Stage: !Ref ServerlessRestApiProdStage
     Type: AWS::ApiGateway::BasePathMapping
+
+  ApiGatewayRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+            Sid: AllowServiceToAssumeRole
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+      Path: /
+    Type: AWS::IAM::Role
 
   Bucket:
     Type: AWS::S3::Bucket

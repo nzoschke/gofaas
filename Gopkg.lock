@@ -2,17 +2,20 @@
 
 
 [[projects]]
+  digest = "1:014e79cf5c422dd0547a87bde33c7f7b3cd29116a96fac8897c7e50f18531dea"
   name = "github.com/aws/aws-lambda-go"
   packages = [
     "events",
     "lambda",
     "lambda/messages",
-    "lambdacontext"
+    "lambdacontext",
   ]
-  revision = "fafa7e49388b8991caf99308e80655ba91816b72"
-  version = "v1.1.0"
+  pruneopts = "UT"
+  revision = "2d482ef09017ae953b1e8d5a6ddac5b696663a3c"
+  version = "v1.6.0"
 
 [[projects]]
+  digest = "1:fb7406b9637fb42ee040bb504a2e1e3eba7242ed0fd0b8e6cb15eb7b7a4dbde2"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -25,15 +28,21 @@
     "aws/credentials/ec2rolecreds",
     "aws/credentials/endpointcreds",
     "aws/credentials/stscreds",
+    "aws/csm",
     "aws/defaults",
     "aws/ec2metadata",
     "aws/endpoints",
     "aws/request",
     "aws/session",
     "aws/signer/v4",
+    "internal/s3err",
+    "internal/sdkio",
     "internal/sdkrand",
+    "internal/sdkuri",
     "internal/shareddefaults",
     "private/protocol",
+    "private/protocol/eventstream",
+    "private/protocol/eventstream/eventstreamapi",
     "private/protocol/json/jsonutil",
     "private/protocol/jsonrpc",
     "private/protocol/query",
@@ -49,14 +58,18 @@
     "service/s3/s3iface",
     "service/s3/s3manager",
     "service/sns",
-    "service/sts"
+    "service/sts",
+    "service/xray",
   ]
-  revision = "a580f1a44c64e950056e5151797c35c65ab3cb4b"
-  version = "v1.13.9"
+  pruneopts = "UT"
+  revision = "59124d90523f4c0491f997f9a36aef265fe3502c"
+  version = "v1.15.49"
 
 [[projects]]
+  digest = "1:69b265779f20e34cea5b35844eafeb8d0732b088b20a98992c5ab6629a6c15c8"
   name = "github.com/aws/aws-xray-sdk-go"
   packages = [
+    "daemoncfg",
     "header",
     "internal/plugins",
     "pattern",
@@ -64,67 +77,104 @@
     "strategy/ctxmissing",
     "strategy/exception",
     "strategy/sampling",
-    "xray"
+    "utils",
+    "xray",
   ]
-  revision = "a53963a5ff9b8e55fe62e8f2f14afd6e40dcb627"
-  version = "v1.0.0-rc.1"
+  pruneopts = "UT"
+  revision = "22b714b85cca49408fa6dcc14b6a27134dacc620"
+  version = "v1.0.0-rc.8"
 
 [[projects]]
+  digest = "1:50e893a85575fa48dc4982a279e50e2fd8b74e4f7c587860c1e25c77083b8125"
   name = "github.com/cihub/seelog"
   packages = ["."]
+  pruneopts = "UT"
   revision = "d2c6e5aa9fbfdd1c624e140287063c7730654115"
   version = "v2.6"
 
 [[projects]]
+  digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
-  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
-  version = "v1.1.0"
+  pruneopts = "UT"
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
 
 [[projects]]
+  digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
+  pruneopts = "UT"
   revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
   version = "v3.2.0"
 
 [[projects]]
+  digest = "1:b98e7574fc27ec166fb31195ec72c3bd0bffd73926d3612eb4c929bc5236f75b"
   name = "github.com/go-ini/ini"
   packages = ["."]
-  revision = "32e4c1e6bc4e7d0d8451aa6b75200d19e37a536a"
-  version = "v1.32.0"
+  pruneopts = "UT"
+  revision = "7b294651033cd7d9e7f0d9ffa1b75ed1e198e737"
+  version = "v1.38.3"
 
 [[projects]]
+  digest = "1:e22af8c7518e1eab6f2eab2b7d7558927f816262586cd6ed9f349c97a6c285c4"
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
+  pruneopts = "UT"
   revision = "0b12d6b5"
 
 [[projects]]
+  digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
   name = "github.com/pkg/errors"
   packages = ["."]
+  pruneopts = "UT"
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
 
 [[projects]]
+  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
+  pruneopts = "UT"
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:274f67cb6fed9588ea2521ecdac05a6d62a8c51c074c1fccc6a49a40ba80e925"
   name = "github.com/satori/go.uuid"
   packages = ["."]
+  pruneopts = "UT"
   revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
   version = "v1.2.0"
 
 [[projects]]
+  digest = "1:18752d0b95816a1b777505a97f71c7467a8445b8ffb55631a7bf779f6ba4fa83"
   name = "github.com/stretchr/testify"
   packages = ["assert"]
-  revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
-  version = "v1.2.1"
+  pruneopts = "UT"
+  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
+  version = "v1.2.2"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "455253c63ec908eed76fe4a6d4a3aa1e68e8636aa4f01baf332b2ca282f027d4"
+  input-imports = [
+    "github.com/aws/aws-lambda-go/events",
+    "github.com/aws/aws-lambda-go/lambda",
+    "github.com/aws/aws-sdk-go/aws",
+    "github.com/aws/aws-sdk-go/aws/request",
+    "github.com/aws/aws-sdk-go/aws/session",
+    "github.com/aws/aws-sdk-go/service/dynamodb",
+    "github.com/aws/aws-sdk-go/service/kms",
+    "github.com/aws/aws-sdk-go/service/lambda",
+    "github.com/aws/aws-sdk-go/service/s3",
+    "github.com/aws/aws-sdk-go/service/s3/s3manager",
+    "github.com/aws/aws-sdk-go/service/sns",
+    "github.com/aws/aws-xray-sdk-go/xray",
+    "github.com/dgrijalva/jwt-go",
+    "github.com/pkg/errors",
+    "github.com/satori/go.uuid",
+    "github.com/stretchr/testify/assert",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

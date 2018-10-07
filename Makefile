@@ -43,9 +43,5 @@ handlers: handlers-go handlers-js
 handlers-go: $(HANDLERS)
 handlers-js: $(HANDLERS_JS)
 
-test: vendor
+test:
 	go test -v ./...
-
-vendor:
-	go get github.com/golang/dep/cmd/dep
-	dep ensure

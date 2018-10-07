@@ -8,7 +8,6 @@ git reset --hard $SHA
 run -s "YAML Linting" yamllint -d "{extends: default, rules: {line-length: {max: 140}, key-ordering: {}}}" template.yml
 
 PKGS=$(go list $PKG/...)
-run -s "Ensuring" dep ensure
 run -s "Linting"  golint -set_exit_status $PKGS
 run -s "Vetting"  go vet -v $PKGS
 run -s "Making"   make -j handlers-go

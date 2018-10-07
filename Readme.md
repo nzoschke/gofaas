@@ -152,15 +152,20 @@ $ aws iam get-user
 We start by getting and testing the `github.com/nzoschke/gofaas`.
 
 ```console
-$ PKG=github.com/nzoschke/gofaas
-$ go get $PKG && cd $GOPATH/src/$PKG
+$ git clone https://github.com/nzoschke/gofaas.git ~/dev/gofaas
+$ cd ~/dev/gofaas
 
 $ make test
-go get -u github.com/golang/dep/cmd/dep
-dep ensure
 go test -v ./...
+go: finding github.com/aws/aws-xray-sdk-go v1.0.0-rc.8
+go: finding github.com/aws/aws-lambda-go v1.6.0
+go: finding github.com/aws/aws-sdk-go v1.15.49
 ...
-ok  	github.com/nzoschke/gofaas	0.014s
+=== RUN   TestUserCreate
+--- PASS: TestUserCreate (0.00s)
+...
+ok     github.com/nzoschke/gofaas      0.014s
+PASS
 ```
 
 This gives us confidence in our Go environment.

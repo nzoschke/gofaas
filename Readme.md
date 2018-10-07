@@ -67,42 +67,52 @@ $ open https://store.docker.com/search?type=edition&offering=community
 ```
 
 <details>
+<summary>We may want to upgrade existing tools...</summary>
+&nbsp;
+
+```console
+$ brew upgrade awscli go node python@2 watchexec
+$ pip2 install --upgrade aws-sam-cli
+```
+</details>
+
+<details>
 <summary>We may want to double check the installed versions...</summary>
 &nbsp;
 
 ```console
 $ aws --version
-aws-cli/1.14.40 Python/3.6.4 Darwin/17.4.0 botocore/1.8.44
+aws-cli/1.16.20 Python/3.7.0 Darwin/17.7.0 botocore/1.12.10
 
-$  -v
-SAM CLI, version 0.3.0
+$ sam --version
+SAM CLI, version 0.6.0
 
 $ docker version
 Client:
- Version:	18.03.0-ce
- API version:	1.37
- Go version:	go1.9.4
- Git commit:	0520e24
- Built:	Wed Mar 21 23:06:22 2018
- OS/Arch:	darwin/amd64
- Experimental:	false
- Orchestrator:	swarm
+ Version:           18.06.1-ce
+ API version:       1.38
+ Go version:        go1.10.3
+ Git commit:        e68fc7a
+ Built:             Tue Aug 21 17:21:31 2018
+ OS/Arch:           darwin/amd64
+ Experimental:      false
 
 Server:
  Engine:
-  Version:	18.03.0-ce
-  API version:	1.37 (minimum version 1.12)
-  Go version:	go1.9.4
-  Git commit:	0520e24
-  Built:	Wed Mar 21 23:14:32 2018
-  OS/Arch:	linux/amd64
-  Experimental:	true
+  Version:          18.06.1-ce
+  API version:      1.38 (minimum version 1.12)
+  Go version:       go1.10.3
+  Git commit:       e68fc7a
+  Built:            Tue Aug 21 17:29:02 2018
+  OS/Arch:          linux/amd64
+  Experimental:     true
+
 
 $ go version
-go version go1.10 darwin/amd64
+go version go1.11.1 darwin/amd64
 
 $ watchexec --version
-watchexec 1.8.6
+watchexec 1.9.2
 ```
 </details>
 

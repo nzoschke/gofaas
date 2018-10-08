@@ -200,7 +200,7 @@ Resources:
       ServiceToken: !GetAtt CustomResourceFunction.Arn
       Stage:  !Ref ServerlessRestApiProdStage
       TracingEnabled: true
-    Type: "Custom::ApiGatewayStage"
+    Type: Custom::ApiGatewayStage
 
   Bucket:
     Type: AWS::S3::Bucket

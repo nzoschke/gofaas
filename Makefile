@@ -24,6 +24,12 @@ deploy-static: web/static/index.html
 	[ -n "$(DIST)" ] && aws cloudfront create-invalidation --distribution-id $(DIST) --paths '/*' || true
 	aws cloudformation describe-stacks --output text --query 'Stacks[*].Outputs' --stack-name $(APP)
 
+dev-debug:
+	make clean
+	GCFLAGS="-N -l" make -j handlers
+	GOARCH=amd64 GOOS=linux go build -o /tmp/delve/dlv github.com/derekparker/delve/cmd/dlv
+	sam local start-api -d 5986 --debugger-path /tmp/delve -n env.json -s web/static
+
 dev:
 	make -j dev-watch dev-sam
 dev-sam:
@@ -33,7 +39,7 @@ dev-watch:
 
 HANDLERS=$(addsuffix main,$(wildcard handlers/*/))
 $(HANDLERS): handlers/%/main: *.go handlers/%/main.go
-	cd ./$(dir $@) && GOOS=linux go build -o main .
+	cd ./$(dir $@) && GOOS=linux go build -gcflags="${GCFLAGS}" -o main .
 
 HANDLERS_JS=$(addsuffix node_modules,$(wildcard web/handlers/*/))
 $(HANDLERS_JS): web/handlers/%/node_modules: web/handlers/%/package.json

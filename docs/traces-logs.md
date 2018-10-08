@@ -1,5 +1,5 @@
 # Function Traces and Logs
-### With Go, Lambda, CloudWatch Logs and X-Ray
+### With API Gateway, Go, Lambda, CloudWatch Logs and X-Ray
 
 As we keep adding more functions with responsibilities for various services, it can become a challenge to spot and diagnose errors.
 
@@ -38,6 +38,34 @@ Resources:
 > From [template.yml](../template.yml)
 
 When this is enabled, AWS will automatically run a X-Ray daemon for our Lambda function.
+
+## AWS Config -- X-Ray and API Gateway
+
+Tracing is also a first-class concept on API Gateway. When enabled, a trace is generated when an API request starts, and includes its request type, response time, and status code. Unfortunately at the time of writing, SAM and CloudFormation don't support enabling tracing, but we can use a CloudFormation Custom Resource to manage the setting:
+
+```yaml
+Resources:
+  ApiGatewayStage:
+    Properties:
+      RestApiId: !Ref ServerlessRestApi
+      ServiceToken: !GetAtt CustomResourceFunction.Arn
+      Stage:  !Ref ServerlessRestApiProdStage
+      TracingEnabled: true
+    Type: Custom::ApiGatewayStage
+
+  CustomResourceFunction:
+    Properties:
+      CodeUri: ./handlers/custom-resource
+      FunctionName: !Sub ${AWS::StackName}-CustomResourceFunction
+      Handler: main
+      Policies:
+        - arn:aws:iam::aws:policy/AmazonAPIGatewayAdministrator
+      Runtime: go1.x
+    Type: AWS::Serverless::Function
+```
+> From [template.yml](../template.yml)
+
+See [Setting up AWS X-Ray with API Gateway](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-enabling-xray.html) for more details.
 
 ## Go Code -- Context pattern
 
@@ -140,15 +168,66 @@ We can also use the X-Ray SDK to trace external HTTP calls, SQL calls, or create
 After we deploy the application and make some calls to the API or workers, we can browse to the X-Ray web console to view our traces:
 
 <p align="center">
-  <img src="img/xray-service-map.png" alt="X-Ray Service Map" width="440" />
+  <img src="img/xray-service-map-api.png" alt="X-Ray Service Map" width="440" />
+  <img src="img/xray-trace-overview.png" alt="X-Ray Trace" width="440" />
+</p>
+
+The service map offers a overview of our app. We can see all of the calls into the API gateway, then our functions, then all the AWS APIs they consume. In the trace overview we can HTTP methods, response time and status.
+
+<p align="center">
+  <img src="img/xray-service-map-error.png" alt="X-Ray Service Map" width="440" />
   <img src="img/xray-trace.png" alt="X-Ray Trace" width="440" />
 </p>
 
-The service map offers a overview of our app. We can see all of the calls to our functions and the AWS APIs they consume. Note that we're seeing an error with SNS calls. It turns out IAM permissions are incorrect... Tracing is already helping us pinpoint problems and we haven't added a single log!
+Tracing can really help dig into problems. Note in this service map that we see errors with SNS calls. It turns out IAM permissions are incorrect... Tracing is already helping us pinpoint problems and we haven't added a single log!
 
-The trace details offers a deep dive into a function call. We can see our function took 324ms, and spent 140ms on the KMS call and 200ms on the DynamoDB call. This waterfall view can help us optimize our functions, which can ultimately save us money.
+Tracing also offers a deep dive into a function call. We can see our function took 324ms, and spent 140ms on the KMS call and 200ms on the DynamoDB call. This waterfall view can help us optimize our functions, which can ultimately save us money.
 
 These are powerful views into our functions with little change to the code and config.
+
+## AWS Config -- API Gateway and CloudWatch
+
+API Gateway can automatically log requests, errors, request parameters, and response payloads. We can turn on logging and "data tracing" in the SAM `Globals` section for our API. Note that we also have to grant API Gateway permission to manage create CloudWatch log groups and events:
+
+```yaml
+Globals:
+  Api:
+    MethodSettings:
+      - DataTraceEnabled: true
+        HttpMethod: "*"
+        LoggingLevel: INFO
+        MetricsEnabled: true
+        ResourcePath: /*
+
+Resources:
+  ApiGatewayAccount:
+    Properties:
+      CloudWatchRoleArn: !GetAtt ApiGatewayRole.Arn
+    Type: AWS::ApiGateway::Account
+
+  ApiGatewayRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+            Sid: AllowServiceToAssumeRole
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+      Path: /
+    Type: AWS::IAM::Role
+```
+
+## Results
+
+<p align="center">
+  <img src="img/cloudwatch-api-gateway.png" alt="API Gateway Logs" width="440" />
+</p>
 
 ## Go Code -- Logging
 
@@ -184,13 +263,13 @@ The `sam logs` tool, and CloudWatch Logs dashboard and API offer additional ways
 
 ## Summary
 
-When building an app with Go, Lambda, CloudWatch Logs and X-Ray we can:
+When building an app with Go, API Gateway, Lambda, CloudWatch Logs and X-Ray we can:
 
 - See internal AWS service traces
 - Add traces of function AWS API calls
 - Add traces of function HTTP calls
 - Visualize function flow and errors
-- Collect, tail and search function logs
+- Collect, tail and search request and function logs
 
 We don't have to:
 

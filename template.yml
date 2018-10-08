@@ -198,7 +198,7 @@ Resources:
     Properties:
       RestApiId: !Ref ServerlessRestApi
       ServiceToken: !GetAtt CustomResourceFunction.Arn
-      Stage:  !Ref ServerlessRestApiProdStage
+      Stage: !Ref ServerlessRestApiProdStage
       TracingEnabled: true
     Type: Custom::ApiGatewayStage
 

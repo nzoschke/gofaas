@@ -194,8 +194,26 @@ Resources:
       Path: /
     Type: AWS::IAM::Role
 
+  ApiGatewayStage:
+    Properties:
+      RestApiId: !Ref ServerlessRestApi
+      ServiceToken: !GetAtt CustomResourceFunction.Arn
+      Stage:  !Ref ServerlessRestApiProdStage
+      TracingEnabled: true
+    Type: "Custom::ApiGatewayStage"
+
   Bucket:
     Type: AWS::S3::Bucket
+
+  CustomResourceFunction:
+    Properties:
+      CodeUri: ./handlers/custom-resource
+      FunctionName: !Sub ${AWS::StackName}-CustomResourceFunction
+      Handler: main
+      Policies:
+        - arn:aws:iam::aws:policy/AmazonAPIGatewayAdministrator
+      Runtime: go1.x
+    Type: AWS::Serverless::Function
 
   DashboardFunction:
     Properties:

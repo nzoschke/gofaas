@@ -1,7 +1,5 @@
 .DS_Store
-.vscode
 main
 out.yml
 node_modules
 web/static/js/env.js
-vendor/

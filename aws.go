@@ -4,6 +4,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/lambda"
@@ -14,6 +15,7 @@ import (
 
 // AWS Clients that can be mocked for testing
 var (
+	APIGateway = NewAPIGateway()
 	DynamoDB = NewDynamoDB()
 	KMS      = NewKMS()
 	Lambda   = NewLambda()
@@ -40,6 +42,13 @@ type DynamoDBAPI interface {
 type KMSAPI interface {
 	DecryptWithContext(ctx aws.Context, input *kms.DecryptInput, opts ...request.Option) (*kms.DecryptOutput, error)
 	EncryptWithContext(ctx aws.Context, input *kms.EncryptInput, opts ...request.Option) (*kms.EncryptOutput, error)
+}
+
+// NewAPIGateway is an xray instrumented APIGateway client
+func NewAPIGateway() *apigateway.APIGateway {
+	c := apigateway.New(sess)
+	xray.AWS(c.Client)
+	return c
 }
 
 // NewDynamoDB is an xray instrumented DynamoDB client

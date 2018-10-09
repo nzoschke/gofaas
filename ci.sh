@@ -7,7 +7,7 @@ RAND=$RANDOM
 export APP=gofaas-$RAND
 export AWS_PROFILE=gofaas
 
-make deploy
+make -j deploy
 
 API_URL=$(aws cloudformation describe-stacks --output text --query 'Stacks[].Outputs[?OutputKey==`ApiUrl`].{Value:OutputValue}' --stack-name $APP)
 BUCKET=$(aws cloudformation describe-stack-resources --output text --query 'StackResources[?LogicalResourceId==`Bucket`].{Id:PhysicalResourceId}' --stack-name $APP)
